@@ -11,7 +11,7 @@ struct matrix
 struct matrix *create_new(int rows, int columns)
 {
     struct matrix *m;
-    m = (struct matricx *)malloc(sizeof(struct matrix));
+    m = (struct matrix *)malloc(sizeof(struct matrix));
     m->x = (int *)malloc(rows * columns * sizeof(int));
     m->rows = rows;
     m->columns = columns;
@@ -30,7 +30,7 @@ void _destroy(struct matrix **m)
 }
 #define destroy(m) _destroy(&m)
 
-void set(Struct matrix *m, int r, int c, int value)
+void set(struct matrix *m, int r, int c, int value)
 {
     m->x[r * m->columns + c] = value;
 }
@@ -72,8 +72,8 @@ int main()
         for (int j = 0; j < columns; j++)
         {
             printf("%5d ", get(m, i, j));
-            printf("\n");
         }
+        printf("\n");
     }
 
     destroy(m);

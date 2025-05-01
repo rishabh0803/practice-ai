@@ -1,0 +1,66 @@
+# =========================
+# General OS / Editor junk
+# =========================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.bak
+*.tmp
+*.log
+*.old
+
+# =========================
+# C / C++ build artifacts
+# =========================
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dll
+*.exe
+*.out
+*.dSYM/
+*.stackdump
+
+# CMake / Make build dirs
+build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+Makefile
+CMakeLists.txt.user
+
+# Code::Blocks
+*.depend
+*.layout
+*.cbp
+
+# CLion IDE
+.idea/
+*.iml
+
+# =========================
+# Python artifacts
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+*.spec
+.venv/
+env/
+venv/
+
+# pipenv
+Pipfile.lock
+
+# =========================
+# VSCode config (optional)
+# =========================
+.vscode/
