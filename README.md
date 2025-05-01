@@ -25,7 +25,7 @@ practice-ai/
 ├── README.md
 └── .gitignore
 
-````
+```
 
 ## 🧩 Folder Meaning (for me)
 
