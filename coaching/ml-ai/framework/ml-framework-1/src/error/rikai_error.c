@@ -4,6 +4,7 @@
 
 typedef struct __rikai_err
 {
+    uint16_t fallback_error_code;
     char *error_str;
 } rikai_err;
 
@@ -14,6 +15,7 @@ rikai_err *rikai_error_create_new()
     if (error == NULL)
         return NULL;
     error->error_str = NULL;
+    error->fallback_error_code = 0;
     return error;
 }
 
@@ -27,14 +29,27 @@ void __rikai_error_destroy(rikai_err **err)
     *err = NULL;
 }
 
-unsigned char rikai_has_error(rikai_err *err)
+uint8_t rikai_has_error(const rikai_err *err)
 {
     if (!err)
         return 0;
-    return (err->error_str != NULL);
+    if (err->error_str == NULL && err->fallback_error_code == 0)
+        return 0;
+    return 1;
 }
 
-void rikai_get_error(char *str, unsigned int size, rikai_err *err)
+uint32_t rikai_get_error_len(const rikai_err *err)
+{
+    if (!err)
+        return 0;
+    if (err->error_str == NULL && err->fallback_error_code == 0)
+        return 0;
+    if (err->error_str)
+        return strlen(err->error_str);
+    return 5;
+}
+
+void rikai_get_error(char *str, uint32_t size, const rikai_err *err)
 {
     unsigned int i;
     unsigned int end_point;
@@ -44,13 +59,21 @@ void rikai_get_error(char *str, unsigned int size, rikai_err *err)
         return;
     if (err->error_str == NULL)
         return;
-    end_point = size - 1;
 
-    for (i = 0; i < end_point && err->error_str[i] != '\0'; ++i)
+    if (err->error_str != NULL)
     {
-        str[i] = err->error_str[i];
+        end_point = size - 1;
+
+        for (i = 0; i < end_point && err->error_str[i] != '\0'; ++i)
+        {
+            str[i] = err->error_str[i];
+        }
+        str[i] = '\0';
     }
-    str[i] = '\0';
+    else
+    {
+        sprintf(str, "%u", err->fallback_error_code);
+    }
 }
 
 void rikai_clear_error(rikai_err *err)
@@ -62,15 +85,17 @@ void rikai_clear_error(rikai_err *err)
         free(err->error_str);
         err->error_str = NULL;
     }
+    err->fallback_error_code = 0;
 }
 
-void rikai_set_error(rikai_err *err, const char *str)
+void rikai_set_error(rikai_err *err, const char *str, uint16_t fallback_error_code)
 {
     if (!err)
         return;
     if (rikai_has_error(err))
         rikai_clear_error(err);
 
+    err->fallback_error_code = fallback_error_code;
     err->error_str = (char *)malloc(strlen(str) + 1);
     if (err->error_str == NULL)
         return;
