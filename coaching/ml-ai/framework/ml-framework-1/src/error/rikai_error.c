@@ -102,7 +102,11 @@ void rikai_set_error(rikai_err *err, const char *str, uint16_t fallback_error_co
     strcpy(err->error_str, str);
 }
 
-int main()
+uint16_t rikai_get_error_code(const rikai_err *err)
 {
-    return 0;
+    if (!err)
+        return 0;
+    if (err->error_str == NULL && err->fallback_error_code == 0)
+        return 0;
+    return err->fallback_error_code;
 }

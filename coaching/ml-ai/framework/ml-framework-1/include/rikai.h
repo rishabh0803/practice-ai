@@ -3,5 +3,6 @@
 
 #include <stdint.h>
 #include <error/rikai_error.h>
+#include <matrix/rikai_matrix.h>
 
 #endif

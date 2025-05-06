@@ -19,4 +19,6 @@ void rikai_clear_error(rikai_err *err);
 
 uint32_t rikai_get_error_len(const rikai_err *err);
 
+uint16_t rikai_get_error_code(const rikai_err *err);
+
 #endif
