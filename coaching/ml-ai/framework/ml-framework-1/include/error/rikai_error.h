@@ -4,6 +4,15 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#define RIKAI_LOW_MEMORY 1
+#define RIKAI_INVALID_DIMENSIONS 2
+#define RIKAI_INVALID_ROW_COUNT 3
+#define RIKAI_INVALID_COLUMN_COUNT 4
+#define RIKAI_NULL_POINTER 5
+#define RIKAI_INVALID_ROW_AND_COLUMN_INDEX 6
+#define RIKAI_INVALID_ROW_INDEX 7
+#define RIKAI_INVALID_COLUMN_INDEX 8
+
 typedef struct __rikai_err rikai_err;
 
 rikai_err *rikai_error_create_new();

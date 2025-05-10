@@ -72,6 +72,8 @@ void rikai_get_error(char *str, uint32_t size, const rikai_err *err)
     }
     else
     {
+        if (size < 6) // TODO: Should Count the digits of fallback_error_code
+            return;
         sprintf(str, "%u", err->fallback_error_code);
     }
 }
