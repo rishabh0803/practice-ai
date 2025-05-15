@@ -167,3 +167,73 @@ uint32_t rikai_matrix_get_column_count(const rikai_matrix *matrix, rikai_err *er
 
     return matrix->columns;
 }
+
+void rikai_matrix_write(const rikai_matrix *matrix, const char *filename, rikai_err *error)
+{
+    FILE *f;
+    char error_message[4096];
+    if(matrix == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument (1)", RIKAI_NULL_POINTER);
+        return;
+    }
+
+    if (filename == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument (2)", RIKAI_NULL_POINTER);
+        return;
+    }
+
+    f = fopen(filename, "wb");
+    if (f == NULL)
+    {
+        sprintf(error_message, "Unable to create file %s", filename);
+        rikai_set_error(error, error_message, RIKAI_FILE_WRITE_ERROR);
+        return;
+    }
+
+    fwrite(&(matrix->rows), sizeof(uint32_t), 1, f);
+    fwrite(&(matrix->columns), sizeof(uint32_t), 1, f);
+    fwrite(matrix->data, sizeof(double), matrix->rows * matrix->columns, f);
+    fclose(f);
+}
+
+rikai_matrix *rikai_matrix_read(const char *filename, rikai_err *error)
+{
+    FILE *f;
+    rikai_matrix *matrix;
+    uint32_t rows, columns;
+    char error_message[4096];
+
+    if (filename == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument (1)", RIKAI_NULL_POINTER);
+        return NULL;
+    }
+
+    f = fopen(filename, "rb");
+    if (f == NULL)
+    {
+        sprintf(error_message, "Unable to read file %s", filename);
+        rikai_set_error(error, error_message, RIKAI_FILE_READ_ERROR);
+        return NULL;
+    }
+
+    // Verify the length of the file is correct or not depending on the contents of first 8 bytes
+    fread(&rows, sizeof(uint32_t), 1, f);
+    fread(&columns, sizeof(uint32_t), 1, f);
+
+    matrix = rikai_matrix_create_new(rows, columns, error);
+    if (matrix == NULL)
+    {
+        fclose(f);
+        return NULL;
+    }
+
+    fread(matrix->data, sizeof(double), rows * columns, f);
+    fclose(f);
+
+    return matrix;
+}
+
+rikai_matrix *rikai_matrix_read_csv(const char *filename, rikai_err *error);

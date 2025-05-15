@@ -41,6 +41,15 @@ int main()
         }
     }
 
+    // Write the matrix to a file
+    rikai_matrix_write(matrix, "matrix.data", error);
+
+    rikai_matrix_destory(matrix, error);
+    matrix = NULL;
+
+    // Read the matrix back from the file
+    matrix = rikai_matrix_read("matrix.data", error);
+
     // Get and print the values from the matrix
     rikai_matrix_get_dimensions(matrix, &rows, &columns, error);
     for (uint32_t i = 0; i < rows; i++)

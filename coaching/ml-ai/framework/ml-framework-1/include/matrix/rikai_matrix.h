@@ -20,4 +20,10 @@ uint32_t rikai_matrix_get_row_count(const rikai_matrix *matrix, rikai_err *error
 
 uint32_t rikai_matrix_get_column_count(const rikai_matrix *matrix, rikai_err *error);
 
+void rikai_matrix_write(const rikai_matrix *matrix, const char *filename, rikai_err *error);
+
+rikai_matrix *rikai_matrix_read(const char *filename, rikai_err *error);
+
+rikai_matrix *rikai_matrix_read_csv(const char *filename, rikai_err *error);
+
 #endif
