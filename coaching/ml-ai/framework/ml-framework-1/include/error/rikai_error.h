@@ -12,6 +12,8 @@
 #define RIKAI_INVALID_ROW_AND_COLUMN_INDEX 6
 #define RIKAI_INVALID_ROW_INDEX 7
 #define RIKAI_INVALID_COLUMN_INDEX 8
+#define RIKAI_FILE_READ_ERROR 9
+#define RIKAI_FILE_WRITE_ERROR 10
 
 typedef struct __rikai_err rikai_err;
 
