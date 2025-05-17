@@ -14,6 +14,8 @@
 #define RIKAI_INVALID_COLUMN_INDEX 8
 #define RIKAI_FILE_READ_ERROR 9
 #define RIKAI_FILE_WRITE_ERROR 10
+#define RIKAI_CSV_FORMAT_ERROR 11
+#define RIKAI_CSV_EMPTY_ERROR 12
 
 typedef struct __rikai_err rikai_err;
 

@@ -38,6 +38,9 @@ gcc -c ../src/matrix/*.c -I ../include -I ../include/error/ -I ../include/matrix
 ar rcs ../lib/librikai.a *.o
 ```
 
+Note: 
+Created build_lib.bat to build the library
+
 This will generate librikai.a in the lib/ directory.
 
 ---
@@ -49,6 +52,9 @@ After building the library, navigate to the test_cases/ folder and compile a tes
 ```bash
 gcc test_matrix.c -I ../include -I ../include/error -I ../include/matrix -L ../lib -lrikai -o test_matrix.exe
 ```
+
+Note: 
+Created rikai_compile.bat to compile test case, we can use that as well
 
 This links your test code against the static library and outputs an executable test_matrix.exe.
 

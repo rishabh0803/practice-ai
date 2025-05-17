@@ -24,6 +24,6 @@ void rikai_matrix_write(const rikai_matrix *matrix, const char *filename, rikai_
 
 rikai_matrix *rikai_matrix_read(const char *filename, rikai_err *error);
 
-rikai_matrix *rikai_matrix_read_csv(const char *filename, rikai_err *error);
+rikai_matrix *rikai_matrix_read_csv(const char *filename,int skip_lines, rikai_err *error);
 
 #endif
