@@ -1,5 +1,5 @@
-#ifndef __RIKAI_MATRIX__H__
-#define __RIKAI_MATRIX__H__
+#ifndef __RIKAI__MATRIX__H__
+#define __RIKAI__MATRIX__H__
 #include <stdint.h>
 #include <rikai_error.h>
 
