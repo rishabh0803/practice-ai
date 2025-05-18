@@ -54,7 +54,7 @@ rikai_matrix *rikai_matrix_create_new(uint32_t rows, uint32_t columns, rikai_err
     return matrix;
 }
 
-void __rikai_matrix_destory(rikai_matrix **matrix, rikai_err *error)
+void __rikai_matrix_destroy(rikai_matrix **matrix, rikai_err *error)
 {
     if (error)
         rikai_clear_error(error);

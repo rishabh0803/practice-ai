@@ -40,7 +40,7 @@ int main()
         printf("%lf  ", value);
     }
 
-    rikai_vector_destory(vector, error);
+    rikai_vector_destroy(vector, error);
     rikai_error_destroy(error);
 
     return 0;

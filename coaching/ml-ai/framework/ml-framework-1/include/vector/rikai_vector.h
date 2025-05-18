@@ -5,8 +5,8 @@ typedef struct __rikai_vector rikai_vector;
 
 rikai_vector * rikai_vector_create_new(uint32_t size, rikai_err *error);
 
-void __rikai_vector_destory(rikai_vector **vector, rikai_err *error);
-#define rikai_vector_destory(vector, error) __rikai_vector_destory(&vector, error)
+void __rikai_vector_destroy(rikai_vector **vector, rikai_err *error);
+#define rikai_vector_destroy(vector, error) __rikai_vector_destroy(&vector, error)
 
 void rikai_vector_set(rikai_vector *vector, uint32_t index, double value, rikai_err *error);
 

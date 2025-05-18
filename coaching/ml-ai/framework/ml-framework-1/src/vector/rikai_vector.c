@@ -36,7 +36,7 @@ rikai_vector *rikai_vector_create_new(uint32_t size, rikai_err *error)
     return vector;
 }
 
-void __rikai_vector_destory(rikai_vector **vector, rikai_err *error)
+void __rikai_vector_destroy(rikai_vector **vector, rikai_err *error)
 {
     if (error)
         rikai_clear_error(error);
@@ -47,7 +47,7 @@ void __rikai_vector_destory(rikai_vector **vector, rikai_err *error)
         return;
     }
 
-    rikai_matrix_destory((*vector)->matrix, error);
+    rikai_matrix_destroy((*vector)->matrix, error);
     free(*vector);
     *vector = NULL;
 }
