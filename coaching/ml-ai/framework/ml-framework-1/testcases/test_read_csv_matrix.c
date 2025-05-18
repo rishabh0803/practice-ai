@@ -24,7 +24,7 @@ int main()
     {
         rikai_get_error(error_message, 501, error);
         printf("%s\n", error_message);
-        rikai_matrix_destory(matrix, error);
+        rikai_matrix_destroy(matrix, error);
         return -1;
     }
 
@@ -39,7 +39,7 @@ int main()
             {
                 rikai_get_error(error_message, 501, error);
                 printf("%s\n", error_message);
-                rikai_matrix_destory(matrix, error);
+                rikai_matrix_destroy(matrix, error);
                 return -1;
             }
 
@@ -49,7 +49,7 @@ int main()
     }
 
     // Clean up
-    rikai_matrix_destory(matrix, error);
+    rikai_matrix_destroy(matrix, error);
     rikai_error_destroy(error);
 
     return 0;

@@ -35,7 +35,7 @@ int main()
             {
                 rikai_get_error(error_message, 501, error);
                 printf("%s\n", error_message);
-                rikai_matrix_destory(matrix, error);
+                rikai_matrix_destroy(matrix, error);
                 return -1;
             }
         }
@@ -44,7 +44,7 @@ int main()
     // Write the matrix to a file
     rikai_matrix_write(matrix, "matrix.data", error);
 
-    rikai_matrix_destory(matrix, error);
+    rikai_matrix_destroy(matrix, error);
     matrix = NULL;
 
     // Read the matrix back from the file
@@ -61,7 +61,7 @@ int main()
             {
                 rikai_get_error(error_message, 501, error);
                 printf("%s\n", error_message);
-                rikai_matrix_destory(matrix, error);
+                rikai_matrix_destroy(matrix, error);
                 return -1;
             }
 
@@ -71,7 +71,7 @@ int main()
     }
 
     // Clean up
-    rikai_matrix_destory(matrix, error);
+    rikai_matrix_destroy(matrix, error);
     rikai_error_destroy(error);
 
     return 0;
