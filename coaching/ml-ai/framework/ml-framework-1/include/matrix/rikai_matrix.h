@@ -5,7 +5,7 @@
 
 typedef struct __rikai_matrix rikai_matrix;
 
-rikai_matrix * rikai_matrix_create_new(uint32_t rows, uint32_t columns, rikai_err *error);
+rikai_matrix *rikai_matrix_create_new(uint32_t rows, uint32_t columns, rikai_err *error);
 
 void __rikai_matrix_destroy(rikai_matrix **matrix, rikai_err *error);
 #define rikai_matrix_destroy(matrix, error) __rikai_matrix_destroy(&matrix, error)
@@ -24,6 +24,12 @@ void rikai_matrix_write(const rikai_matrix *matrix, const char *filename, rikai_
 
 rikai_matrix *rikai_matrix_read(const char *filename, rikai_err *error);
 
-rikai_matrix *rikai_matrix_read_csv(const char *filename,int skip_lines, rikai_err *error);
+rikai_matrix *rikai_matrix_read_csv(const char *filename, int skip_lines, rikai_err *error);
+
+void rikai_matrix_transpose(rikai_matrix *matrix, rikai_err *error);
+
+rikai_matrix *rikai_matrix_transpose_create_new(const rikai_matrix *matrix, rikai_err *error);
+
+void rikai_matrix_print(FILE *file, const rikai_matrix *matrix, rikai_err *error);
 
 #endif

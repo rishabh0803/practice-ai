@@ -39,6 +39,24 @@ int main()
         value = rikai_vector_get(vector, i, error);
         printf("%lf  ", value);
     }
+    printf("\n");
+
+    rikai_vector_write(vector, "vector.data", error);
+
+    rikai_vector_destroy(vector, error);
+
+    vector = rikai_vector_read("vector.data", error);
+
+    if (rikai_has_error(error))
+    {
+        rikai_get_error(error_message, 501, error);
+        printf("%s\n", error_message);
+        rikai_vector_destroy(vector, error);
+        rikai_error_destroy(error);
+        return -1;
+    }
+
+    rikai_vector_print(stdout, vector, error);
 
     rikai_vector_destroy(vector, error);
     rikai_error_destroy(error);

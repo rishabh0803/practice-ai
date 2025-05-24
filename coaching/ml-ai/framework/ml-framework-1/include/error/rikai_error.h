@@ -21,6 +21,8 @@
 #define RIKAI_FILE_FORMAT_ERROR 15
 #define RIKAI_FILE_CONTAINS_MATRIX 16
 
+#define rikai_on_error_throw(error, error_handler) goto error_handler
+
 typedef struct __rikai_err rikai_err;
 
 rikai_err *rikai_error_create_new();

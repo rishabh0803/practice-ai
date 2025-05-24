@@ -19,7 +19,7 @@ int main()
     }
 
     // Read the matrix from the file
-    matrix = rikai_matrix_read_csv("matrix.csv",0, error);
+    matrix = rikai_matrix_read_csv("matrix.csv", 0, error);
     if (rikai_has_error(error))
     {
         rikai_get_error(error_message, 501, error);
