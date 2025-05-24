@@ -395,3 +395,126 @@ rikai_matrix *rikai_matrix_read_csv(const char *filename, int skip_lines, rikai_
     fclose(f);
     return matrix;
 }
+
+void rikai_matrix_transpose(rikai_matrix *matrix, rikai_err *error)
+{
+    uint32_t a, b;
+    uint32_t new_rows, new_columns;
+    double value;
+    double *new_data;
+
+    if (error)
+        rikai_clear_error(error);
+
+    if (matrix == NULL)
+    {
+        rikai_set_error(error, "Null pointer", RIKAI_NULL_POINTER);
+        return;
+    }
+
+    if (matrix->rows == 1 && matrix->columns == 1)
+        return;
+
+    if (matrix->rows == 1 || matrix->columns == 1)
+    {
+        a = matrix->rows;
+        matrix->rows = matrix->columns;
+        matrix->columns = a;
+        return;
+    }
+
+    if (matrix->rows == matrix->columns)
+    {
+        // Square matrix
+        for (a = 0; a < matrix->rows; a++)
+        {
+            for (b = a + 1; b < matrix->columns; b++)
+            {
+                value = matrix->data[a * matrix->columns + b];
+                matrix->data[a * matrix->columns + b] = matrix->data[b * matrix->columns + a];
+                matrix->data[b * matrix->columns + a] = value;
+            }
+        }
+
+        return;
+    }
+
+    // Non-square matrix
+    new_rows = matrix->columns;
+    new_columns = matrix->rows;
+    new_data = (double *)malloc(new_rows * new_columns * sizeof(double));
+    if (new_data == NULL)
+    {
+        rikai_set_error(error, "Low memory", RIKAI_LOW_MEMORY);
+        return;
+    }
+
+    for (a = 0; a < matrix->rows; a++)
+    {
+        for (b = 0; b < matrix->columns; b++)
+        {
+            new_data[b * new_columns + a] = matrix->data[a * matrix->columns + b];
+        }
+    }
+    free(matrix->data);
+    matrix->data = new_data;
+    matrix->rows = new_rows;
+    matrix->columns = new_columns;
+}
+
+rikai_matrix *rikai_matrix_transpose_create_new(const rikai_matrix *matrix, rikai_err *error)
+{
+    uint32_t a, b;
+    rikai_matrix *new_matrix;
+    if (error)
+        rikai_clear_error(error);
+
+    if (matrix == NULL)
+    {
+        rikai_set_error(error, "Null pointer", RIKAI_NULL_POINTER);
+        return NULL;
+    }
+
+    new_matrix = rikai_matrix_create_new(matrix->columns, matrix->rows, error);
+    if (new_matrix == NULL)
+        return NULL;
+
+    for (a = 0; a < matrix->rows; a++)
+    {
+        for (b = 0; b < matrix->columns; b++)
+        {
+            new_matrix->data[b * new_matrix->columns + a] = matrix->data[a * matrix->columns + b];
+        }
+    }
+
+    return new_matrix;
+}
+
+void rikai_matrix_print(FILE *file, const rikai_matrix *matrix, rikai_err *error)
+{
+    uint32_t a, b;
+
+    if (error)
+        rikai_clear_error(error);
+
+    if (file == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument (1)", RIKAI_NULL_POINTER);
+        return;
+    }
+
+    if (matrix == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument (2)", RIKAI_NULL_POINTER);
+        return;
+    }
+
+    for (a = 0; a < matrix->rows; a++)
+    {
+        for (b = 0; b < matrix->columns; b++)
+        {
+            fprintf(file, "%12.6lf ", rikai_matrix_get(matrix, a, b, error));
+        }
+        fprintf(file, "\n");
+    }
+}

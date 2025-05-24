@@ -191,4 +191,85 @@ rikai_vector *rikai_vector_read(const char *filename, rikai_err *error)
     return vector;
 }
 
-rikai_vector *rikai_vector_read_csv(const char *filename, int skip_lines, rikai_err *error);
+rikai_vector *rikai_vector_read_csv(const char *filename, int skip_lines, rikai_err *error)
+{
+
+    uint16_t error_code = 0;
+    rikai_vector *vector = NULL;
+    rikai_matrix *matrix = NULL;
+    uint32_t rows, columns;
+    rows = 0;
+    columns = 0;
+
+    if (error)
+        rikai_clear_error(error);
+
+    if (filename == NULL)
+    {
+        rikai_set_error(error, "Null pointer", RIKAI_NULL_POINTER);
+        return NULL;
+    }
+
+    matrix = rikai_matrix_read_csv(filename, skip_lines, error);
+    if (matrix == NULL)
+    {
+        if (error)
+        {
+            error_code = rikai_get_error_code(error);
+            if (error_code == RIKAI_INVALID_DIMENSIONS || error_code == RIKAI_INVALID_ROW_COUNT || error_code == RIKAI_INVALID_COLUMN_COUNT)
+            {
+                rikai_clear_error(error);
+                rikai_set_error(error, "Invalid file format", RIKAI_FILE_FORMAT_ERROR);
+            }
+            return NULL;
+        }
+    }
+
+    rikai_matrix_get_dimensions(matrix, &rows, &columns, error);
+    if (rows > 1 && columns > 1)
+    {
+        rikai_matrix_destroy(matrix, error);
+        rikai_set_error(error, "File contains matrix", RIKAI_FILE_CONTAINS_MATRIX);
+        return NULL;
+    }
+
+    vector = (rikai_vector *)malloc(sizeof(rikai_vector));
+    if (vector == NULL)
+    {
+        rikai_matrix_destroy(matrix, error);
+        rikai_set_error(error, "Low memory", RIKAI_LOW_MEMORY);
+        return NULL;
+    }
+
+    if (columns == 1)
+    {
+        vector->matrix = matrix;
+    }
+    else
+    {
+        rikai_matrix_transpose(matrix, error);
+        vector->matrix = matrix;
+    }
+
+    return vector;
+}
+
+void rikai_vector_print(FILE *file, const rikai_vector *vector, rikai_err *error)
+{
+    if (error)
+        rikai_clear_error(error);
+
+    if (file == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument (1)", RIKAI_NULL_POINTER);
+        return;
+    }
+
+    if (vector == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument (2)", RIKAI_NULL_POINTER);
+        return;
+    }
+
+    rikai_matrix_print(file, vector->matrix, error);
+}
