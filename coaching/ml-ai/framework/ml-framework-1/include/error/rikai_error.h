@@ -20,6 +20,7 @@
 #define RIKAI_INVALID_INDEX 14
 #define RIKAI_FILE_FORMAT_ERROR 15
 #define RIKAI_FILE_CONTAINS_MATRIX 16
+#define RIKAI_GET_VECTOR_ERROR 17
 
 #define rikai_on_error_throw(error, error_handler) goto error_handler
 

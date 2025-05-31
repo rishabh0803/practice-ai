@@ -1,6 +1,7 @@
 #include <rikai.h>
 #include <stdlib.h>
 #include <private_rikai.h>
+#include <rikai_vector.h>
 
 typedef struct __rikai_matrix
 {
@@ -517,4 +518,175 @@ void rikai_matrix_print(FILE *file, const rikai_matrix *matrix, rikai_err *error
         }
         fprintf(file, "\n");
     }
+}
+
+void rikai_matrix_fill(rikai_matrix *input_matrix,
+                       uint32_t start_row_index, uint32_t start_column_index,
+                       uint32_t end_row_index, uint32_t end_column_index,
+                       double fill_value, rikai_err *error)
+{
+    uint32_t r, c;
+    if (error)
+        rikai_clear_error(error);
+
+    if (input_matrix == NULL)
+    {
+        rikai_set_error(error, "Null pointer", RIKAI_NULL_POINTER);
+        return;
+    }
+
+    if (end_row_index >= input_matrix->rows)
+        end_row_index = input_matrix->rows - 1;
+
+    if (end_column_index >= input_matrix->columns)
+        end_column_index = input_matrix->columns - 1;
+
+    for (r = start_row_index; r <= end_row_index; r++)
+    {
+        for (c = start_column_index; c <= end_column_index; c++)
+        {
+            input_matrix->data[r * input_matrix->columns + c] = fill_value;
+        }
+    }
+}
+
+void rikai_matrix_copy(rikai_matrix *target_matrix,
+                       uint32_t target_start_row_index, uint32_t target_start_column_index,
+                       const rikai_matrix *source_matrix,
+                       uint32_t source_start_row_index, uint32_t source_start_column_index,
+                       uint32_t source_end_row_index, uint32_t source_end_column_index,
+                       rikai_err *error)
+{
+
+    uint32_t target_r, target_c;
+    uint32_t source_r, source_c;
+    uint32_t target_row_end_index, target_column_end_index;
+
+    if (error)
+        rikai_clear_error(error);
+
+    if (target_matrix == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument (1)", RIKAI_NULL_POINTER);
+        return;
+    }
+
+    if (source_matrix == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument (2)", RIKAI_NULL_POINTER);
+        return;
+    }
+
+    if (target_start_row_index >= target_matrix->rows)
+        return;
+
+    if (target_start_column_index >= target_matrix->columns)
+        return;
+
+    if (source_end_row_index >= source_matrix->rows)
+        source_end_row_index = source_matrix->rows - 1;
+
+    if (source_end_column_index >= source_matrix->columns)
+        source_end_column_index = source_matrix->columns - 1;
+
+    target_row_end_index = target_start_row_index + (source_end_row_index - source_start_row_index);
+    if (target_row_end_index >= target_matrix->rows)
+        target_row_end_index = target_matrix->rows - 1;
+
+    target_column_end_index = target_start_column_index + (source_end_column_index - source_start_column_index);
+    if (target_column_end_index >= target_matrix->columns)
+        target_column_end_index = target_matrix->columns - 1;
+
+    source_r = source_start_row_index;
+    for (target_r = target_start_row_index; target_r <= target_row_end_index; target_r++)
+    {
+        source_c = source_start_column_index;
+        for (target_c = target_start_column_index; target_c <= target_column_end_index; target_c++)
+        {
+            target_matrix->data[target_r * target_matrix->columns + target_c] =
+                source_matrix->data[source_r * source_matrix->columns + source_c];
+            source_c++;
+        }
+        source_r++;
+    }
+}
+
+rikai_vector *rikai_matrix_get_vector(const rikai_matrix *matrix,
+                                      uint32_t start_row_index, uint32_t end_row_index,
+                                      uint32_t start_column_index, uint32_t end_column_index,
+                                      rikai_err *error)
+{
+    uint32_t r, c, i;
+    uint32_t vector_size;
+    uint32_t rows_to_pick, columns_to_pick;
+    char error_message[4096];
+
+    rikai_vector *vector;
+    if (error)
+        rikai_clear_error(error);
+
+    if (matrix == NULL)
+    {
+        rikai_set_error(error, "Null pointer", RIKAI_NULL_POINTER);
+        return NULL;
+    }
+
+    if (start_row_index >= matrix->rows || start_column_index >= matrix->columns)
+    {
+        sprintf(error_message, "Cannot create vector using (%u, %u) - (%u, %u)", start_row_index, start_column_index,
+                end_row_index, end_column_index);
+        rikai_set_error(error, error_message, RIKAI_GET_VECTOR_ERROR);
+        return NULL;
+    }
+
+    if (end_row_index >= matrix->rows || end_column_index >= matrix->columns)
+    {
+        sprintf(error_message, "Cannot create vector using (%u, %u) - (%u, %u)", start_row_index, start_column_index,
+                end_row_index, end_column_index);
+        rikai_set_error(error, error_message, RIKAI_GET_VECTOR_ERROR);
+        return NULL;
+    }
+
+    rows_to_pick = end_row_index - start_row_index + 1;
+    columns_to_pick = end_column_index - start_column_index + 1;
+
+    if (rows_to_pick > 1 && columns_to_pick > 1)
+    {
+        sprintf(error_message, "Cannot create vector using (%u, %u) - (%u, %u)", start_row_index, start_column_index,
+                end_row_index, end_column_index);
+        rikai_set_error(error, error_message, RIKAI_GET_VECTOR_ERROR);
+        return NULL;
+    }
+
+    if (rows_to_pick == 1)
+        vector_size = columns_to_pick;
+    else
+        vector_size = rows_to_pick;
+
+    vector = rikai_vector_create_new(vector_size, error);
+    if (vector == NULL)
+        return NULL;
+
+    if (rows_to_pick == 1)
+    {
+        r = start_row_index;
+        i = 0;
+        for (c = start_column_index; c <= end_column_index; c++)
+        {
+            rikai_vector_set(vector, i, matrix->data[r * matrix->columns + c], error);
+            ++i;
+        }
+    }
+    else
+    {
+        c = start_column_index;
+        i = 0;
+        for (r = start_row_index; r <= end_row_index; r++)
+        {
+            rikai_vector_set(vector, i, matrix->data[r * matrix->columns + c], error);
+            ++i;
+        }
+    }
+
+    return vector;
 }

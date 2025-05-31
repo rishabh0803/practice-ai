@@ -2,6 +2,7 @@
 #define __RIKAI__MATRIX__H__
 #include <stdint.h>
 #include <rikai_error.h>
+#include <rikai_vector.h>
 
 typedef struct __rikai_matrix rikai_matrix;
 
@@ -31,5 +32,22 @@ void rikai_matrix_transpose(rikai_matrix *matrix, rikai_err *error);
 rikai_matrix *rikai_matrix_transpose_create_new(const rikai_matrix *matrix, rikai_err *error);
 
 void rikai_matrix_print(FILE *file, const rikai_matrix *matrix, rikai_err *error);
+
+void rikai_matrix_fill(rikai_matrix *input_matrix,
+                       uint32_t start_row_index, uint32_t start_column_index,
+                       uint32_t end_row_index, uint32_t end_column_index,
+                       double fill_value, rikai_err *error);
+
+void rikai_matrix_copy(rikai_matrix *target_matrix,
+                       uint32_t target_start_row_index, uint32_t target_start_column_index,
+                       const rikai_matrix *source_matrix,
+                       uint32_t source_start_row_index, uint32_t source_start_column_index,
+                       uint32_t source_end_row_index, uint32_t source_end_column_index,
+                       rikai_err *error);
+
+rikai_vector *rikai_matrix_get_vector(const rikai_matrix *matrix,
+                                      uint32_t start_row_index, uint32_t end_row_index,
+                                      uint32_t start_column_index, uint32_t end_column_index,
+                                      rikai_err *error);
 
 #endif
