@@ -22,4 +22,6 @@ rikai_vector *rikai_vector_read_csv(const char *filename, int skip_lines, rikai_
 
 void rikai_vector_print(FILE *file, const rikai_vector *vector, rikai_err *error);
 
+void rikai_vector_fill_random(rikai_vector *vector, rikai_err *error);
+
 #endif
