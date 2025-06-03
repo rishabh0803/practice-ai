@@ -690,3 +690,17 @@ rikai_vector *rikai_matrix_get_vector(const rikai_matrix *matrix,
 
     return vector;
 }
+
+double *rikai_matrix_get_data(const rikai_matrix *matrix, rikai_err *error)
+{
+    if (error)
+        rikai_clear_error(error);
+
+    if (matrix == NULL)
+    {
+        rikai_set_error(error, "Null pointer", RIKAI_NULL_POINTER);
+        return NULL;
+    }
+
+    return matrix->data;
+}

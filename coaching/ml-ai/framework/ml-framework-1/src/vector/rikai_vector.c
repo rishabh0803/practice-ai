@@ -1,6 +1,7 @@
 #include <rikai.h>
 #include <stdlib.h>
 #include <private_rikai.h>
+#include <time.h>
 
 typedef struct __rikai_vector
 {
@@ -272,4 +273,62 @@ void rikai_vector_print(FILE *file, const rikai_vector *vector, rikai_err *error
     }
 
     rikai_matrix_print(file, vector->matrix, error);
+}
+
+void rikai_vector_fill_random(rikai_vector *vector, rikai_err *error)
+{
+    uint32_t size, i;
+    double value;
+    if (error)
+        rikai_clear_error(error);
+
+    if (vector == NULL)
+    {
+        rikai_set_error(error, "Null pointer", RIKAI_NULL_POINTER);
+        return;
+    }
+
+    srand(time(0));
+    size = rikai_vector_get_size(vector, error);
+
+    for (i = 0; i < size; i++)
+    {
+        value = (double)rand();
+        rikai_vector_set(vector, i, value, error);
+    }
+}
+
+rikai_matrix *rikai_vector_get_matrix(const rikai_vector *vector, rikai_err *error)
+{
+    if (error)
+        rikai_clear_error(error);
+
+    if (vector == NULL)
+    {
+        rikai_set_error(error, "Null pointer", RIKAI_NULL_POINTER);
+        return NULL;
+    }
+
+    return vector->matrix;
+}
+
+void rikai_vector_set_matrix(rikai_vector *vector, rikai_matrix *matrix, rikai_err *error)
+{
+    if (error)
+        rikai_clear_error(error);
+
+    if (vector == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument(1)", RIKAI_NULL_POINTER);
+        return;
+    }
+
+    if (matrix == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument(2)", RIKAI_NULL_POINTER);
+        return;
+    }
+
+    rikai_matrix_destroy(vector->matrix, error);
+    vector->matrix = matrix;
 }
