@@ -8,9 +8,9 @@ rikai_matrix *rikai_multiply_matrix(const rikai_matrix *left_matrix, const rikai
     uint32_t right_matrix_rows, right_matrix_columns;
     uint32_t product_matrix_rows, product_matrix_columns;
     uint32_t r, c, j;
-    double *product_matrix_data;
-    double *left_matrix_data;
-    double *right_matrix_data;
+    double *product_matrix_data = NULL;
+    double *left_matrix_data = NULL;
+    double *right_matrix_data = NULL;
 
     rikai_matrix *product_matrix = NULL;
     char error_message[4096];
@@ -73,6 +73,7 @@ rikai_vector *rikai_multiply_matrix_with_vector(const rikai_matrix *matrix, cons
     uint32_t matrix_rows, matrix_columns;
     uint32_t vector_size;
     rikai_vector *result_vector = NULL;
+    rikai_matrix *product_matrix = NULL;
 
     if (error)
         rikai_clear_error(error);
@@ -99,10 +100,69 @@ rikai_vector *rikai_multiply_matrix_with_vector(const rikai_matrix *matrix, cons
         return NULL;
     }
 
-    // TODO:
-    // Create a new vector to hold the result
-    // call multiply_matrix with the matrix and vector->matrix
-    // set the result matrix to result_vector -> matri
+    result_vector = rikai_vector_create_new(1, error);
+    if (result_vector == NULL)
+        return NULL;
+
+    product_matrix = rikai_multiply_matrix(matrix, rikai_vector_get_matrix(vector, error), error);
+    if (product_matrix == NULL)
+    {
+        rikai_vector_destroy(result_vector, error);
+        return NULL;
+    }
+
+    rikai_vector_set_matrix(result_vector, product_matrix, error);
+    rikai_matrix_destroy(product_matrix, error);
+    return result_vector;
+}
+
+rikai_vector *rikai_substract_vector(const rikai_vector *left_vector, const rikai_vector *right_vector, rikai_err *error)
+{
+    char error_message[4096];
+    uint32_t left_vector_size, right_vector_size;
+    uint32_t i;
+    double *left_data = NULL, *right_data = NULL, *result_data = NULL;
+    rikai_vector *result_vector = NULL;
+
+    if (error)
+        rikai_clear_error(error);
+
+    if (left_vector == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument(1)", RIKAI_NULL_POINTER);
+        return NULL;
+    }
+
+    if (right_vector == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument(2)", RIKAI_NULL_POINTER);
+        return NULL;
+    }
+
+    left_vector_size = rikai_vector_get_size(left_vector, error);
+    right_vector_size = rikai_vector_get_size(right_vector, error);
+
+    if (left_vector_size != right_vector_size)
+    {
+        sprintf(error_message, "Cannot subtract vectors of size %u and %u", left_vector_size, right_vector_size);
+        rikai_set_error(error, error_message, RIKAI_VECTOR_SIZE_MISMATCH);
+        return NULL;
+    }
+
+    result_vector = rikai_vector_create_new(left_vector_size, error);
+    if (result_vector == NULL)
+        return NULL;
+
+    left_data = rikai_matrix_get_data(rikai_vector_get_matrix(left_vector, error), error);
+    right_data = rikai_matrix_get_data(rikai_vector_get_matrix(right_vector, error), error);
+
+    result_data = rikai_matrix_get_data(rikai_vector_get_matrix(result_vector, error), error);
+
+    for (i = 0; i < left_vector_size; i++)
+    {
+        // [i*1+0] = [i]
+        result_data[i] = left_data[i] - right_data[i];
+    }
 
     return result_vector;
 }
