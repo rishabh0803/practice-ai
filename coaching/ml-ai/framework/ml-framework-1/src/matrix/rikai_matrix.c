@@ -225,6 +225,48 @@ void rikai_matrix_write(const rikai_matrix *matrix, const char *filename, rikai_
     fclose(f);
 }
 
+void rikai_matrix_write_csv(const rikai_matrix *matrix, const char *filename, int skip_lines, rikai_err *error)
+{
+    FILE *f;
+    char error_message[4096];
+    uint32_t r, c;
+
+    if (error)
+        rikai_clear_error(error);
+
+    if (matrix == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument (1)", RIKAI_NULL_POINTER);
+        return;
+    }
+
+    if (filename == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument (2)", RIKAI_NULL_POINTER);
+        return;
+    }
+
+    f = fopen(filename, "w");
+    if (f == NULL)
+    {
+        sprintf(error_message, "Unable to create file %s", filename);
+        rikai_set_error(error, error_message, RIKAI_FILE_WRITE_ERROR);
+        return;
+    }
+
+    for (r = 0; r < matrix->rows; r++)
+    {
+        for (c = 0; c < matrix->columns; c++)
+        {
+            fprintf(f, "%lf", matrix->data[r * matrix->columns + c]);
+            if (c != matrix->columns - 1)
+                fputc(',', f);
+        }
+        fputc('\n', f);
+    }
+    fclose(f);
+}
+
 rikai_matrix *rikai_matrix_read(const char *filename, rikai_err *error)
 {
     FILE *f;
