@@ -5,5 +5,7 @@
 #include <error/rikai_error.h>
 #include <matrix/rikai_matrix.h>
 #include <vector/rikai_vector.h>
+#include <math/rikai_math.h>
+#include <ml_math/rikai_ml_math.h>
 
 #endif
