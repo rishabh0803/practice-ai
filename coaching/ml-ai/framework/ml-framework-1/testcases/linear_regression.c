@@ -4,6 +4,12 @@
 
 int main(int c, char *v[])
 {
+    if (c < 3)
+    {
+        fprintf(stderr, "Usage: %s <filename> <number_of_iterations>\n", v[0]);
+        return 1;
+    }
+
     rikai_err *error = rikai_error_create_new();
     if (error == NULL)
     {
@@ -23,7 +29,7 @@ int main(int c, char *v[])
     uint32_t dataset_rows, dataset_cols;
     uint32_t input_rows, input_cols;
     uint32_t model_size;
-    double mean_aquared_error;
+    double mean_squared_error;
 
     filename = v[1];
     number_of_iterations = atol(v[2]);
@@ -57,9 +63,9 @@ int main(int c, char *v[])
     for (int i = 1; i < number_of_iterations; i++)
     {
         y_hat = rikai_multiply_matrix_with_vector(input_matrix, model, error);
-        mean_aquared_error = rikai_mean_squared_error(y, y_hat, error);
+        mean_squared_error = rikai_mean_squared_error(y, y_hat, error);
 
-        printf("Iteration %d: Mean Squared Error = %20.12lf\n", i, mean_aquared_error);
+        printf("Iteration %d: Mean Squared Error = %20.12lf\n", i, mean_squared_error);
         rikai_vector_destroy(y_hat, error);
     }
 
