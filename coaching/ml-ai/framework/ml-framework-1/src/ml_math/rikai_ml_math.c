@@ -45,7 +45,7 @@ double rikai_mean_squared_error(const rikai_vector *left_vector, const rikai_vec
         return 0.0;
     }
 
-    difference = rikai_substract_vector(left_vector, right_vector, error);
+    difference = rikai_substract_vector(left_vector, right_vector, NULL, error);
     if (difference == NULL)
     {
         mean_squared_error = 0.0;
@@ -67,7 +67,7 @@ double rikai_mean_squared_error(const rikai_vector *left_vector, const rikai_vec
         goto fallback;
     }
 
-    product_matrix = rikai_multiply_matrix(left_matrix, right_matrix, error);
+    product_matrix = rikai_multiply_matrix(left_matrix, right_matrix, NULL, error);
     if (product_matrix == NULL)
     {
         goto fallback;
