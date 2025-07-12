@@ -2,11 +2,12 @@
 #include <stdlib.h>
 #include <private_rikai.h>
 
-rikai_matrix *rikai_multiply_matrix(const rikai_matrix *left_matrix, const rikai_matrix *right_matrix, rikai_err *error)
+rikai_matrix *rikai_multiply_matrix(const rikai_matrix *left_matrix, const rikai_matrix *right_matrix, rikai_matrix *product_matrix_container, rikai_err *error)
 {
     uint32_t left_matrix_rows, left_matrix_columns;
     uint32_t right_matrix_rows, right_matrix_columns;
     uint32_t product_matrix_rows, product_matrix_columns;
+    uint32_t product_matrix_container_rows, product_matrix_container_columns;
     uint32_t r, c, j;
     double *product_matrix_data = NULL;
     double *left_matrix_data = NULL;
@@ -43,9 +44,28 @@ rikai_matrix *rikai_multiply_matrix(const rikai_matrix *left_matrix, const rikai
 
     product_matrix_rows = left_matrix_rows;
     product_matrix_columns = right_matrix_columns;
-    product_matrix = rikai_matrix_create_new(product_matrix_rows, product_matrix_columns, error);
-    if (product_matrix == NULL)
-        return NULL;
+
+    if (product_matrix_container == NULL)
+    {
+        product_matrix = rikai_matrix_create_new(product_matrix_rows, product_matrix_columns, error);
+        if (product_matrix == NULL)
+            return NULL;
+    }
+    else
+    {
+        product_matrix_container_rows = rikai_matrix_get_row_count(product_matrix_container, error);
+        product_matrix_container_columns = rikai_matrix_get_column_count(product_matrix_container, error);
+
+        if (product_matrix_container_rows != product_matrix_rows || product_matrix_container_columns != product_matrix_columns)
+        {
+            sprintf(error_message, "Provided matrix container has dimensions [%u, %u] but expected [%u, %u]",
+                    product_matrix_container_rows, product_matrix_container_columns, product_matrix_rows, product_matrix_columns);
+            rikai_set_error(error, error_message, RIKAI_INVALID_MATRIX_CONTAINER_DIMENSIONS);
+            return NULL;
+        }
+
+        product_matrix = product_matrix_container;
+    }
 
     left_matrix_data = rikai_matrix_get_data(left_matrix, error);
     right_matrix_data = rikai_matrix_get_data(right_matrix, error);
@@ -67,11 +87,12 @@ rikai_matrix *rikai_multiply_matrix(const rikai_matrix *left_matrix, const rikai
     return product_matrix;
 }
 
-rikai_vector *rikai_multiply_matrix_with_vector(const rikai_matrix *matrix, const rikai_vector *vector, rikai_err *error)
+rikai_vector *rikai_multiply_matrix_with_vector(const rikai_matrix *matrix, const rikai_vector *vector, rikai_vector *product_vector_container, rikai_err *error)
 {
     char error_message[4096];
     uint32_t matrix_rows, matrix_columns;
     uint32_t vector_size;
+    uint32_t product_vector_container_size;
     rikai_vector *result_vector = NULL;
     rikai_matrix *product_matrix = NULL;
 
@@ -100,11 +121,29 @@ rikai_vector *rikai_multiply_matrix_with_vector(const rikai_matrix *matrix, cons
         return NULL;
     }
 
-    result_vector = rikai_vector_create_new(1, error);
-    if (result_vector == NULL)
-        return NULL;
+    if (product_vector_container == NULL)
+    {
+        result_vector = rikai_vector_create_new(1, error);
+        if (result_vector == NULL)
+            return NULL;
+        product_matrix = NULL;
+    }
+    else
+    {
+        product_vector_container_size = rikai_vector_get_size(product_vector_container, error);
 
-    product_matrix = rikai_multiply_matrix(matrix, rikai_vector_get_matrix(vector, error), error);
+        if (product_vector_container_size != matrix_rows)
+        {
+            sprintf(error_message, "Provided vector container has size %u but expected %u", product_vector_container_size, matrix_rows);
+            rikai_set_error(error, error_message, RIKAI_INVALID_VECTOR_CONTAINER_SIZE);
+            return NULL;
+        }
+
+        product_matrix = rikai_vector_get_matrix(product_vector_container, error);
+        result_vector = product_vector_container;
+    }
+
+    product_matrix = rikai_multiply_matrix(matrix, rikai_vector_get_matrix(vector, error), product_matrix, error);
     if (product_matrix == NULL)
     {
         rikai_vector_destroy(result_vector, error);
@@ -112,14 +151,14 @@ rikai_vector *rikai_multiply_matrix_with_vector(const rikai_matrix *matrix, cons
     }
 
     rikai_vector_set_matrix(result_vector, product_matrix, error);
-    rikai_matrix_destroy(product_matrix, error);
     return result_vector;
 }
 
-rikai_vector *rikai_substract_vector(const rikai_vector *left_vector, const rikai_vector *right_vector, rikai_err *error)
+rikai_vector *rikai_substract_vector(const rikai_vector *left_vector, const rikai_vector *right_vector, rikai_vector *difference_vector_container, rikai_err *error)
 {
     char error_message[4096];
     uint32_t left_vector_size, right_vector_size;
+    uint32_t difference_vector_container_size;
     uint32_t i;
     double *left_data = NULL, *right_data = NULL, *result_data = NULL;
     rikai_vector *result_vector = NULL;
@@ -149,9 +188,23 @@ rikai_vector *rikai_substract_vector(const rikai_vector *left_vector, const rika
         return NULL;
     }
 
-    result_vector = rikai_vector_create_new(left_vector_size, error);
-    if (result_vector == NULL)
-        return NULL;
+    if (difference_vector_container == NULL)
+    {
+        result_vector = rikai_vector_create_new(left_vector_size, error);
+        if (result_vector == NULL)
+            return NULL;
+    }
+    else
+    {
+        difference_vector_container_size = rikai_vector_get_size(difference_vector_container, error);
+        if (difference_vector_container_size != left_vector_size)
+        {
+            sprintf(error_message, "Provided vector container has size %u but expected %u", difference_vector_container_size, left_vector_size);
+            rikai_set_error(error, error_message, RIKAI_INVALID_VECTOR_CONTAINER_SIZE);
+            return NULL;
+        }
+        result_vector = difference_vector_container;
+    }
 
     left_data = rikai_matrix_get_data(rikai_vector_get_matrix(left_vector, error), error);
     right_data = rikai_matrix_get_data(rikai_vector_get_matrix(right_vector, error), error);
