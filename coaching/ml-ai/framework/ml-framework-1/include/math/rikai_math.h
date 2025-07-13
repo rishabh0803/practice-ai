@@ -13,4 +13,8 @@ rikai_vector *rikai_multiply_matrix_with_vector(const rikai_matrix *matrix, cons
 
 rikai_vector *rikai_substract_vector(const rikai_vector *left_vector, const rikai_vector *right_vector, rikai_vector *difference_vector_container, rikai_err *error);
 
+rikai_vector *rikai_multiply_vector_with_scalar(const rikai_vector *vector, double scalar, rikai_vector *product_vector_container, rikai_err *error);
+
+double rikai_multiple_vector_get_scalar(const rikai_vector *left_vector, const rikai_vector *right_vector, rikai_err *error);
+
 #endif

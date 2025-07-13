@@ -219,3 +219,91 @@ rikai_vector *rikai_substract_vector(const rikai_vector *left_vector, const rika
 
     return result_vector;
 }
+
+rikai_vector *rikai_multiply_vector_with_scalar(const rikai_vector *vector, double scalar, rikai_vector *product_vector_container, rikai_err *error)
+{
+    char error_message[4096];
+    uint32_t vector_size;
+    uint32_t product_vector_container_size;
+    uint32_t i;
+    double value;
+    rikai_vector *result_vector = NULL;
+
+    if (error)
+        rikai_clear_error(error);
+
+    if (vector == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument(1)", RIKAI_NULL_POINTER);
+        return NULL;
+    }
+
+    vector_size = rikai_vector_get_size(vector, error);
+
+    if (product_vector_container == NULL)
+    {
+        result_vector = rikai_vector_create_new(vector_size, error);
+        if (result_vector == NULL)
+            return NULL;
+    }
+    else
+    {
+        product_vector_container_size = rikai_vector_get_size(product_vector_container, error);
+        if (product_vector_container_size != vector_size)
+        {
+            sprintf(error_message, "Provided vector container has size %u but expected %u", product_vector_container_size, vector_size);
+            rikai_set_error(error, error_message, RIKAI_INVALID_VECTOR_CONTAINER_SIZE);
+            return NULL;
+        }
+        result_vector = product_vector_container;
+    }
+
+    for (i = 0; i < vector_size; i++)
+    {
+        value = rikai_vector_get(vector, i, error);
+        value *= scalar;
+        rikai_vector_set(result_vector, i, value, error);
+    }
+
+    return result_vector;
+}
+
+double rikai_multiple_vector_get_scalar(const rikai_vector *left_vector, const rikai_vector *right_vector, rikai_err *error)
+{
+    char error_message[4096];
+    uint32_t left_vector_size, right_vector_size;
+    uint32_t i;
+    double result = 0.0;
+
+    if (error)
+        rikai_clear_error(error);
+
+    if (left_vector == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument(1)", RIKAI_NULL_POINTER);
+        return 0.0;
+    }
+
+    if (right_vector == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument(2)", RIKAI_NULL_POINTER);
+        return 0.0;
+    }
+
+    left_vector_size = rikai_vector_get_size(left_vector, error);
+    right_vector_size = rikai_vector_get_size(right_vector, error);
+
+    if (left_vector_size != right_vector_size)
+    {
+        sprintf(error_message, "Cannot multiply vectors of size %u and %u", left_vector_size, right_vector_size);
+        rikai_set_error(error, error_message, RIKAI_VECTOR_SIZE_MISMATCH);
+        return 0.0;
+    }
+
+    for (i = 0; i < left_vector_size; i++)
+    {
+        result += (rikai_vector_get(left_vector, i, error) * rikai_vector_get(right_vector, i, error));
+    }
+
+    return result;
+}

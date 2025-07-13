@@ -16,6 +16,8 @@ uint32_t rikai_vector_get_size(const rikai_vector *vector, rikai_err *error);
 
 void rikai_vector_write(const rikai_vector *vector, const char *filename, rikai_err *error);
 
+void rikai_vector_write_csv(const rikai_vector *vector, const char *filename, rikai_err *error);
+
 rikai_vector *rikai_vector_read(const char *filename, rikai_err *error);
 
 rikai_vector *rikai_vector_read_csv(const char *filename, int skip_lines, rikai_err *error);
@@ -23,5 +25,7 @@ rikai_vector *rikai_vector_read_csv(const char *filename, int skip_lines, rikai_
 void rikai_vector_print(FILE *file, const rikai_vector *vector, rikai_err *error);
 
 void rikai_vector_fill_random(rikai_vector *vector, rikai_err *error);
+
+rikai_vector *rikai_vector_transpose_create_new(const rikai_vector *vector, rikai_vector *transponsed_vector_container, rikai_err *error);
 
 #endif
