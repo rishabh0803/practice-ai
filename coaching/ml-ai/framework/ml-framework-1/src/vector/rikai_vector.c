@@ -375,7 +375,6 @@ rikai_vector *rikai_vector_transpose_create_new(const rikai_vector *vector, rika
         return transponsed_vector_container;
 
     vector_size = rikai_vector_get_size(vector, error);
-
     if (transponsed_vector_container == NULL)
     {
         transponsed_vector = rikai_vector_create_new(vector_size, error);
