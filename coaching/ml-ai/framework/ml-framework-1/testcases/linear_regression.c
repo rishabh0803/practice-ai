@@ -110,7 +110,7 @@ rikai_vector *rikai_linear_regression_fit(const rikai_matrix *x_matrix, const ri
         E_vector = rikai_substract_vector(y_vector, Y_HAT_vector, E_vector, error);
 
         // Calculate ET = E^T
-        ET_vector = rikai_vector_transpose(E_vector, ET_vector, error);
+        ET_vector = rikai_vector_transpose_create_new(E_vector, ET_vector, error);
 
         // error_value = ET * E
         error_value = rikai_multiple_vector_get_scalar(ET_vector, E_vector, error);
