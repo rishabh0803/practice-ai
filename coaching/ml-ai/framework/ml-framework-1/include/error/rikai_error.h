@@ -26,6 +26,8 @@
 #define RIKAI_VECTOR_SIZE_MISMATCH 20
 #define RIKAI_INVALID_MATRIX_CONTAINER_DIMENSIONS 21
 #define RIKAI_INVALID_VECTOR_CONTAINER_SIZE 22
+#define RIKAI_INVALID_NUMBER_OF_ITERATIONS 23
+#define RIKAI_SIZE_MISMATCH 24
 
 #define rikai_on_error_throw(error, error_handler) goto error_handler
 

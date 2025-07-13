@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <private_rikai.h>
 #include <time.h>
+#include <string.h>
 
 typedef struct __rikai_vector
 {
@@ -130,6 +131,26 @@ void rikai_vector_write(const rikai_vector *vector, const char *filename, rikai_
     }
 
     rikai_matrix_write(vector->matrix, filename, error);
+}
+
+void rikai_vector_write_csv(const rikai_vector *vector, const char *filename, rikai_err *error)
+{
+    if (error)
+        rikai_clear_error(error);
+
+    if (vector == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument(1)", RIKAI_NULL_POINTER);
+        return;
+    }
+
+    if (filename == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument(2)", RIKAI_NULL_POINTER);
+        return;
+    }
+
+    rikai_matrix_write_csv(vector->matrix, filename, 0, error);
 }
 
 rikai_vector *rikai_vector_read(const char *filename, rikai_err *error)
@@ -329,6 +350,51 @@ void rikai_vector_set_matrix(rikai_vector *vector, rikai_matrix *matrix, rikai_e
         return;
     }
 
-    rikai_matrix_destroy(vector->matrix, error);
+    if (matrix != vector->matrix)
+        rikai_matrix_destroy(vector->matrix, error);
+
     vector->matrix = matrix;
+}
+
+rikai_vector *rikai_vector_transpose_create_new(const rikai_vector *vector, rikai_vector *transponsed_vector_container, rikai_err *error)
+{
+    char error_message[4096];
+    uint32_t vector_size, transposed_vector_container_size;
+    rikai_vector *transponsed_vector = NULL;
+
+    if (error)
+        rikai_clear_error(error);
+
+    if (vector == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument(1)", RIKAI_NULL_POINTER);
+        return NULL;
+    }
+
+    if (vector == transponsed_vector_container)
+        return transponsed_vector_container;
+
+    vector_size = rikai_vector_get_size(vector, error);
+
+    if (transponsed_vector_container == NULL)
+    {
+        transponsed_vector = rikai_vector_create_new(vector_size, error);
+        if (transponsed_vector == NULL)
+            return NULL;
+    }
+    else
+    {
+        transposed_vector_container_size = rikai_vector_get_size(transponsed_vector_container, error);
+        if (transposed_vector_container_size != vector_size)
+        {
+            sprintf(error_message, "Invalid transposed vector container size (%u)", transposed_vector_container_size);
+            rikai_set_error(error, error_message, RIKAI_INVALID_SIZE);
+            return NULL;
+        }
+
+        transponsed_vector = transponsed_vector_container;
+    }
+
+    memcpy(rikai_matrix_get_data(transponsed_vector->matrix, error), rikai_matrix_get_data(vector->matrix, error), vector_size * sizeof(double));
+    return transponsed_vector;
 }
