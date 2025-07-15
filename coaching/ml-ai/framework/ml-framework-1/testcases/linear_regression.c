@@ -119,7 +119,7 @@ rikai_vector *rikai_linear_regression_fit(const rikai_matrix *x_matrix, const ri
         error_value = error_value / (2.0 * X_matrix_rows);
 
         // TODO: Add callback to report details of the training processs
-        printf("Iteration %10llu: Error = %10.12f\n", i + 1, error_value);
+        // printf("Iteration %10llu: Error = %10.12f\n", i + 1, error_value);
 
         // Calculate XTE = X^T * E
         XTE_vector = rikai_multiply_matrix_with_vector(XT_matrix, E_vector, XTE_vector, error);
