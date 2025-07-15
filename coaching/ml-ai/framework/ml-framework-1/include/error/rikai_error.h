@@ -29,7 +29,9 @@
 #define RIKAI_INVALID_NUMBER_OF_ITERATIONS 23
 #define RIKAI_SIZE_MISMATCH 24
 
-#define rikai_on_error_throw(error, error_handler) goto error_handler
+#define rikai_on_error_throw(error, error_handler) \
+    if (rikai_has_error(error))                    \
+    goto error_handler
 
 typedef struct __rikai_err rikai_err;
 

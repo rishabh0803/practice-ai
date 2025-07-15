@@ -24,6 +24,7 @@ Thumbs.db
 *.dSYM/
 *.stackdump
 
+*.data
 *.csv
 
 # CMake / Make build dirs

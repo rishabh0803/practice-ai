@@ -84,7 +84,7 @@ rikai_vector *rikai_linear_regression_fit(const rikai_matrix *x_matrix, const ri
     if (E_vector == NULL)
         goto catch_error;
 
-    ET_vector = rikai_vector_create_new(X_matrix_columns, error);
+    ET_vector = rikai_vector_create_new(X_matrix_rows, error);
     if (ET_vector == NULL)
         goto catch_error;
 
@@ -107,7 +107,7 @@ rikai_vector *rikai_linear_regression_fit(const rikai_matrix *x_matrix, const ri
         Y_HAT_vector = rikai_multiply_matrix_with_vector(X_matrix, model_vector, Y_HAT_vector, error);
 
         // Calculate E = Y - Y_HAT
-        E_vector = rikai_substract_vector(y_vector, Y_HAT_vector, E_vector, error);
+        E_vector = rikai_substract_vector(Y_HAT_vector, y_vector, E_vector, error);
 
         // Calculate ET = E^T
         ET_vector = rikai_vector_transpose_create_new(E_vector, ET_vector, error);
@@ -116,9 +116,10 @@ rikai_vector *rikai_linear_regression_fit(const rikai_matrix *x_matrix, const ri
         error_value = rikai_multiple_vector_get_scalar(ET_vector, E_vector, error);
 
         // error_value  = error_value / 2 * X_matrix_rows;
-        error_value /= (2.0 * X_matrix_rows);
+        error_value = error_value / (2.0 * X_matrix_rows);
 
         // TODO: Add callback to report details of the training processs
+        // printf("Iteration %10llu: Error = %10.12f\n", i + 1, error_value);
 
         // Calculate XTE = X^T * E
         XTE_vector = rikai_multiply_matrix_with_vector(XT_matrix, E_vector, XTE_vector, error);
@@ -126,7 +127,7 @@ rikai_vector *rikai_linear_regression_fit(const rikai_matrix *x_matrix, const ri
             goto catch_error;
 
         // Calculate XTE = XTE * ((learning_rate * (1 / X_matrix_rows));
-        XTE_vector = rikai_multiply_vector_with_scalar(XTE_vector, (1.0 / x_matrix_rows) * learning_rate, XTE_vector, error);
+        XTE_vector = rikai_multiply_vector_with_scalar(XTE_vector, (1.0 / X_matrix_rows) * learning_rate, XTE_vector, error);
 
         // Update model_vector = model_vector - XTE
         model_vector = rikai_substract_vector(model_vector, XTE_vector, model_vector, error);
@@ -152,9 +153,9 @@ prepare_for_exit:
 // Main function to demonstrate the usage of the linear regression fitting function
 int main(int c, char *v[])
 {
-    if (c < 3)
+    if (c < 4)
     {
-        fprintf(stderr, "Usage: %s <filename> <number_of_iterations>\n", v[0]);
+        fprintf(stderr, "Usage: %s <filename> <number_of_iterations> <learning_rate>\n", v[0]);
         return 1;
     }
 
@@ -177,9 +178,11 @@ int main(int c, char *v[])
     uint32_t input_rows, input_cols;
     uint32_t model_size;
     double mean_squared_error;
+    double learning_rate;
 
     filename = v[1];
     number_of_iterations = atol(v[2]);
+    learning_rate = atof(v[3]);
 
     // Load the dataset
     dataset = rikai_matrix_read_csv(filename, 0, error);
@@ -188,18 +191,15 @@ int main(int c, char *v[])
     rikai_matrix_get_dimensions(dataset, &dataset_rows, &dataset_cols, error);
 
     // Split the dataset into input and output matrices
-    input_matrix = rikai_matrix_create_new(dataset_rows, dataset_cols, error);
-    rikai_on_error_throw(error, err);
-
-    rikai_matrix_get_dimensions(input_matrix, &input_rows, &input_cols, error);
-
-    rikai_matrix_fill(input_matrix, 0, 0, input_rows - 1, 0, 1.0, error);
-    rikai_matrix_copy(input_matrix, 0, 1, dataset, 0, 0, dataset_rows - 1, dataset_cols - 2, error);
+    input_matrix = rikai_matrix_create_new(dataset_rows, dataset_cols - 1, error);
+    rikai_matrix_copy(input_matrix, 0, 0, dataset, 0, 0, dataset_rows - 1, 0, error);
 
     y = rikai_matrix_get_vector(dataset, 0, dataset_cols - 1, dataset_rows - 1, dataset_cols - 1, error);
+    rikai_on_error_throw(error, err);
+
     rikai_matrix_destroy(dataset, error);
 
-    model = rikai_linear_regression_fit(input_matrix, y, number_of_iterations, 0.01, error);
+    model = rikai_linear_regression_fit(input_matrix, y, number_of_iterations, learning_rate, error);
     rikai_on_error_throw(error, err);
 
     rikai_vector_write_csv(model, "model.csv", error);

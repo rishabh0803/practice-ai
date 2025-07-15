@@ -654,8 +654,8 @@ void rikai_matrix_copy(rikai_matrix *target_matrix,
 }
 
 rikai_vector *rikai_matrix_get_vector(const rikai_matrix *matrix,
-                                      uint32_t start_row_index, uint32_t end_row_index,
-                                      uint32_t start_column_index, uint32_t end_column_index,
+                                      uint32_t start_row_index, uint32_t start_column_index,
+                                      uint32_t end_row_index, uint32_t end_column_index,
                                       rikai_err *error)
 {
     uint32_t r, c, i;
