@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-rikai_vector *rikai_linear_regression_fit(const rikai_matrix *x_matrix, const rikai_vector *y_vector, uint64_t number_of_iterations, double learning_rate, rikai_err *error)
+rikai_vector *rikai_linear_regression_fit(const rikai_matrix *x_matrix, const rikai_vector *y_vector, uint64_t number_of_iterations, double learning_rate, uint8_t (*on_iteration_complete)(uint64_t, double, rikai_vector *), rikai_err *error)
 {
     // This function is a placeholder for the actual implementation of linear regression fitting.
     // It should return a model vector after training on the input matrix and output vector.
@@ -118,8 +118,13 @@ rikai_vector *rikai_linear_regression_fit(const rikai_matrix *x_matrix, const ri
         // error_value  = error_value / 2 * X_matrix_rows;
         error_value = error_value / (2.0 * X_matrix_rows);
 
-        // TODO: Add callback to report details of the training processs
-        // printf("Iteration %10llu: Error = %10.12f\n", i + 1, error_value);
+        if (on_iteration_complete)
+        {
+            if (!on_iteration_complete(i, error_value, model_vector))
+            {
+                break; // Stop training if the callback returns false
+            }
+        }
 
         // Calculate XTE = X^T * E
         XTE_vector = rikai_multiply_matrix_with_vector(XT_matrix, E_vector, XTE_vector, error);
@@ -150,7 +155,20 @@ prepare_for_exit:
     return model_vector;
 }
 
+// --------------------------------------------------------------------------------------
+
+uint8_t callback_on_iteration_complete(uint64_t iteration, double error_value, rikai_vector *model_vector)
+{
+    // This is a placeholder for the callback function that can be used to monitor training progress.
+    // It can be modified to log the progress or perform other actions.
+    if (iteration % 100 == 0)
+        printf("Iteration: %llu, Error Value: %f\n", iteration, error_value);
+
+    return 1; // Return 1 to continue training, return 0 to stop training
+}
+
 // Main function to demonstrate the usage of the linear regression fitting function
+
 int main(int c, char *v[])
 {
     if (c < 4)
@@ -199,7 +217,7 @@ int main(int c, char *v[])
 
     rikai_matrix_destroy(dataset, error);
 
-    model = rikai_linear_regression_fit(input_matrix, y, number_of_iterations, learning_rate, error);
+    model = rikai_linear_regression_fit(input_matrix, y, number_of_iterations, learning_rate, callback_on_iteration_complete, error);
     rikai_on_error_throw(error, err);
 
     rikai_vector_write_csv(model, "model.csv", error);
