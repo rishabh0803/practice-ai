@@ -154,7 +154,7 @@ rikai_vector *rikai_multiply_matrix_with_vector(const rikai_matrix *matrix, cons
     return result_vector;
 }
 
-rikai_vector *rikai_substract_vector(const rikai_vector *left_vector, const rikai_vector *right_vector, rikai_vector *difference_vector_container, rikai_err *error)
+rikai_vector *rikai_subtract_vector(const rikai_vector *left_vector, const rikai_vector *right_vector, rikai_vector *difference_vector_container, rikai_err *error)
 {
     char error_message[4096];
     uint32_t left_vector_size, right_vector_size;
@@ -356,7 +356,7 @@ double rikai_mean_vector(const rikai_vector *vector, rikai_err *error)
     return sum / vector_size;
 }
 
-rikai_vector *rikai_substract_scalar_from_vector(const rikai_vector *vector, double value, rikai_vector *difference_vector_container, rikai_err *error)
+rikai_vector *rikai_subtract_scalar_from_vector(const rikai_vector *vector, double value, rikai_vector *difference_vector_container, rikai_err *error)
 {
     char error_message[4096];
     uint32_t vector_size;

@@ -45,7 +45,7 @@ double rikai_mean_squared_error(const rikai_vector *left_vector, const rikai_vec
         return 0.0;
     }
 
-    difference = rikai_substract_vector(left_vector, right_vector, NULL, error);
+    difference = rikai_subtract_vector(left_vector, right_vector, NULL, error);
     if (difference == NULL)
     {
         mean_squared_error = 0.0;
@@ -129,7 +129,7 @@ double rikai_r2_score(const rikai_vector *y_true, const rikai_vector *y_pred, ri
         return 0.0;
     }
 
-    difference_vector = rikai_substract_vector(y_true, y_pred, NULL, error);
+    difference_vector = rikai_subtract_vector(y_true, y_pred, NULL, error);
     if (rikai_has_error(error))
         return 0.0;
 
@@ -140,7 +140,7 @@ double rikai_r2_score(const rikai_vector *y_true, const rikai_vector *y_pred, ri
     ss_residual = rikai_multiple_vector_get_scalar(difference_vector_T, difference_vector, error);
 
     mean_y = rikai_mean_vector(y_true, error);
-    difference_vector = rikai_substract_scalar_from_vector(y_true, mean_y, NULL, error);
+    difference_vector = rikai_subtract_scalar_from_vector(y_true, mean_y, NULL, error);
     if (rikai_has_error(error))
         return 0.0;
 
