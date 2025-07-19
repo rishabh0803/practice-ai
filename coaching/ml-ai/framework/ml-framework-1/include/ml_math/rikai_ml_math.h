@@ -10,4 +10,6 @@
 
 double rikai_mean_squared_error(const rikai_vector *left_vector, const rikai_vector *right_vector, rikai_err *error);
 
+double rikai_r2_score(const rikai_vector *y_true, const rikai_vector *y_pred, rikai_err *error);
+
 #endif
