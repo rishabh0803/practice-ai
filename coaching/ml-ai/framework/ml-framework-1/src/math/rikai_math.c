@@ -220,6 +220,54 @@ rikai_vector *rikai_substract_vector(const rikai_vector *left_vector, const rika
     return result_vector;
 }
 
+rikai_vector *rikai_substract_vector_with_scalar(const rikai_vector *vector, double scalar, rikai_vector *difference_vector_container, rikai_err *error)
+{
+    char error_message[4096];
+    uint32_t vector_size;
+    uint32_t difference_vector_container_size;
+    uint32_t i;
+    double value;
+    rikai_vector *result_vector = NULL;
+
+    if (error)
+        rikai_clear_error(error);
+
+    if (vector == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument(1)", RIKAI_NULL_POINTER);
+        return NULL;
+    }
+
+    vector_size = rikai_vector_get_size(vector, error);
+
+    if (difference_vector_container == NULL)
+    {
+        result_vector = rikai_vector_create_new(vector_size, error);
+        if (result_vector == NULL)
+            return NULL;
+    }
+    else
+    {
+        difference_vector_container_size = rikai_vector_get_size(difference_vector_container, error);
+        if (difference_vector_container_size != vector_size)
+        {
+            sprintf(error_message, "Provided vector container has size %u but expected %u", difference_vector_container_size, vector_size);
+            rikai_set_error(error, error_message, RIKAI_INVALID_VECTOR_CONTAINER_SIZE);
+            return NULL;
+        }
+        result_vector = difference_vector_container;
+    }
+
+    for (i = 0; i < vector_size; i++)
+    {
+        value = rikai_vector_get(vector, i, error);
+        value -= scalar;
+        rikai_vector_set(result_vector, i, value, error);
+    }
+
+    return result_vector;
+}
+
 rikai_vector *rikai_multiply_vector_with_scalar(const rikai_vector *vector, double scalar, rikai_vector *product_vector_container, rikai_err *error)
 {
     char error_message[4096];
