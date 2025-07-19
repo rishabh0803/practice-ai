@@ -92,3 +92,68 @@ fallback:
     rikai_matrix_destroy(left_matrix, error);
     return mean_squared_error / left_size;
 }
+
+double rikai_r2_score(const rikai_vector *y_true, const rikai_vector *y_pred, rikai_err *error)
+{
+    char error_message[256];
+    uint32_t y_true_size, y_pred_size;
+    rikai_vector *difference_vector = NULL;
+    rikai_vector *difference_vector_T = NULL;
+
+    double mean_y = 0.0;
+    double ss_residual = 0.0;
+    double ss_total = 0.0;
+
+    if (error)
+        rikai_clear_error(error);
+
+    if (y_true == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument(1)", RIKAI_NULL_POINTER);
+        return 0.0;
+    }
+
+    if (y_pred == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument(2)", RIKAI_NULL_POINTER);
+        return 0.0;
+    }
+
+    y_true_size = rikai_vector_get_size(y_true, error);
+    y_pred_size = rikai_vector_get_size(y_pred, error);
+
+    if (y_true_size != y_pred_size)
+    {
+        sprintf(error_message, "Unable to calculate R^2 score: sSize mismatch between y_true (%u) and y_pred (%u)", y_true_size, y_pred_size);
+        rikai_set_error(error, error_message, RIKAI_SIZE_MISMATCH);
+        return 0.0;
+    }
+
+    difference_vector = rikai_substract_vector(y_true, y_pred, NULL, error);
+    if (rikai_has_error(error))
+        return 0.0;
+
+    difference_vector_T = rikai_vector_transpose_create_new(difference_vector, NULL, error);
+    if (rikai_has_error(error))
+        return 0.0;
+
+    ss_residual = rikai_multiple_vector_get_scalar(difference_vector_T, difference_vector, error);
+
+    mean_y = rikai_mean_vector(y_true, error);
+    difference_vector = rikai_substract_scalar_from_vector(y_true, mean_y, NULL, error);
+    if (rikai_has_error(error))
+        return 0.0;
+
+    difference_vector_T = rikai_vector_transpose_create_new(difference_vector, NULL, error);
+    if (rikai_has_error(error))
+        return 0.0;
+
+    ss_total = rikai_multiple_vector_get_scalar(difference_vector_T, difference_vector, error);
+    if (rikai_has_error(error))
+        return 0.0;
+
+    rikai_vector_destroy(difference_vector, error);
+    rikai_vector_destroy(difference_vector_T, error);
+
+    return 1.0 - (ss_residual / ss_total);
+}
