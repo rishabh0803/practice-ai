@@ -161,8 +161,8 @@ uint8_t callback_on_iteration_complete(uint64_t iteration, double error_value, r
 {
     // This is a placeholder for the callback function that can be used to monitor training progress.
     // It can be modified to log the progress or perform other actions.
-    if (iteration % 100 == 0)
-        printf("Iteration: %llu, Error Value: %f\n", iteration, error_value);
+    // if (iteration % 100 == 0)
+    printf("Iteration: %llu, Error Value: %f\n", iteration, error_value);
 
     return 1; // Return 1 to continue training, return 0 to stop training
 }
