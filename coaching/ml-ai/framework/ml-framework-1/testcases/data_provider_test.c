@@ -294,30 +294,35 @@ void kalu(rikai_data_provider *data_provider, rikai_matrix *matrix, uint32_t *ro
         }
     }
 
+    if (r < matrix_rows)
+    {
+        fseek(data_provider->file, 0, SEEK_SET);
+    }
+
     if (rows_provided)
         *rows_provided = r;
 }
 
-int main()
-{
-    char error_message[4096];
-    rikai_err *error = rikai_error_create_new();
-    rikai_data_provider *data_provider = rikai_data_provider_create_new("..\\datasets\\linear_data.csv", 0, kalu, error);
-    if (rikai_has_error(error))
-    {
-        printf("Error \n");
-        return 0;
-    }
+// int main()
+// {
+//     char error_message[4096];
+//     rikai_err *error = rikai_error_create_new();
+//     rikai_data_provider *data_provider = rikai_data_provider_create_new("..\\datasets\\kaggle_2_train.csv", 0, kalu, error);
+//     if (rikai_has_error(error))
+//     {
+//         printf("Error \n");
+//         return 0;
+//     }
 
-    do_something_like_fit(data_provider, error);
-    if (rikai_has_error(error))
-    {
-        rikai_get_error(error_message, 4000, error);
-        printf("Some issues: %s\n", error_message);
-        return 0;
-    }
+//     do_something_like_fit(data_provider, error);
+//     if (rikai_has_error(error))
+//     {
+//         rikai_get_error(error_message, 4000, error);
+//         printf("Some issues: %s\n", error_message);
+//         return 0;
+//     }
 
-    rikai_data_provider_destroy(data_provider, error);
-    rikai_error_destroy(error);
-    return 0;
-}
+//     rikai_data_provider_destroy(data_provider, error);
+//     rikai_error_destroy(error);
+//     return 0;
+// }
