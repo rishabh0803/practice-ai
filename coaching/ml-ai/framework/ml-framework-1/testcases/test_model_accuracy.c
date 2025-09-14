@@ -36,7 +36,7 @@ double rikai_r2_score(const rikai_vector *y_true, const rikai_vector *y_pred, ri
     rikai_vector *denominator_diff = rikai_vector_create_new(size, error);
 
     numerator_diff = rikai_subtract_vector(y_true, y_pred, numerator_diff, error);
-    denominator_diff = rikai_subtract_vector_with_scalar(y_true, mean_y, denominator_diff, error);
+    denominator_diff = rikai_subtract_scalar_from_vector(y_true, mean_y, denominator_diff, error);
 
     rikai_vector *numerator_diff_t = rikai_vector_transpose_create_new(numerator_diff, NULL, error);
     rikai_vector *denominator_diff_t = rikai_vector_transpose_create_new(denominator_diff, NULL, error);
