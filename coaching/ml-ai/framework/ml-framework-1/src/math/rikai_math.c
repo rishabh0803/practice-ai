@@ -154,7 +154,7 @@ rikai_vector *rikai_multiply_matrix_with_vector(const rikai_matrix *matrix, cons
     return result_vector;
 }
 
-rikai_vector *rikai_substract_vector(const rikai_vector *left_vector, const rikai_vector *right_vector, rikai_vector *difference_vector_container, rikai_err *error)
+rikai_vector *rikai_subtract_vector(const rikai_vector *left_vector, const rikai_vector *right_vector, rikai_vector *difference_vector_container, rikai_err *error)
 {
     char error_message[4096];
     uint32_t left_vector_size, right_vector_size;
@@ -354,4 +354,99 @@ double rikai_multiple_vector_get_scalar(const rikai_vector *left_vector, const r
     }
 
     return result;
+}
+
+double rikai_sum_vector(const rikai_vector *vector, rikai_err *error)
+{
+    uint32_t vector_size;
+    uint32_t i;
+    double sum = 0.0;
+
+    if (error)
+        rikai_clear_error(error);
+
+    if (vector == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument", RIKAI_NULL_POINTER);
+        return 0.0;
+    }
+
+    vector_size = rikai_vector_get_size(vector, error);
+
+    for (i = 0; i < vector_size; i++)
+        sum += rikai_vector_get(vector, i, error);
+
+    return sum;
+}
+
+double rikai_mean_vector(const rikai_vector *vector, rikai_err *error)
+{
+    uint32_t vector_size;
+    double sum;
+
+    if (error)
+        rikai_clear_error(error);
+
+    if (vector == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument", RIKAI_NULL_POINTER);
+        return 0.0;
+    }
+
+    vector_size = rikai_vector_get_size(vector, error);
+    if (vector_size == 0)
+    {
+        rikai_set_error(error, "Vector size is zero", RIKAI_INVALID_SIZE);
+        return 0.0;
+    }
+
+    sum = rikai_sum_vector(vector, error);
+    return sum / vector_size;
+}
+
+rikai_vector *rikai_subtract_scalar_from_vector(const rikai_vector *vector, double value, rikai_vector *difference_vector_container, rikai_err *error)
+{
+    char error_message[4096];
+    uint32_t vector_size;
+    uint32_t difference_vector_container_size;
+    uint32_t i;
+    rikai_vector *result_vector = NULL;
+    double result_value;
+
+    if (error)
+        rikai_clear_error(error);
+
+    if (vector == NULL)
+    {
+        rikai_set_error(error, "Null pointer Argument(1)", RIKAI_NULL_POINTER);
+        return NULL;
+    }
+
+    vector_size = rikai_vector_get_size(vector, error);
+
+    if (difference_vector_container == NULL)
+    {
+        result_vector = rikai_vector_create_new(vector_size, error);
+        if (result_vector == NULL)
+            return NULL;
+    }
+    else
+    {
+        difference_vector_container_size = rikai_vector_get_size(difference_vector_container, error);
+        if (difference_vector_container_size != vector_size)
+        {
+            sprintf(error_message, "Provided vector container has size %u but expected %u", difference_vector_container_size, vector_size);
+            rikai_set_error(error, error_message, RIKAI_INVALID_VECTOR_CONTAINER_SIZE);
+            return NULL;
+        }
+        result_vector = difference_vector_container;
+    }
+
+    for (i = 0; i < vector_size; i++)
+    {
+        result_value = rikai_vector_get(vector, i, error) - value;
+        rikai_vector_set(result_vector, i, result_value, error);
+    }
+
+    return result_vector;
 }

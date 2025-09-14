@@ -107,7 +107,7 @@ rikai_vector *rikai_linear_regression_fit(const rikai_matrix *x_matrix, const ri
         Y_HAT_vector = rikai_multiply_matrix_with_vector(X_matrix, model_vector, Y_HAT_vector, error);
 
         // Calculate E = Y - Y_HAT
-        E_vector = rikai_substract_vector(Y_HAT_vector, y_vector, E_vector, error);
+        E_vector = rikai_subtract_vector(Y_HAT_vector, y_vector, E_vector, error);
 
         // Calculate ET = E^T
         ET_vector = rikai_vector_transpose_create_new(E_vector, ET_vector, error);
@@ -135,7 +135,7 @@ rikai_vector *rikai_linear_regression_fit(const rikai_matrix *x_matrix, const ri
         XTE_vector = rikai_multiply_vector_with_scalar(XTE_vector, (1.0 / X_matrix_rows) * learning_rate, XTE_vector, error);
 
         // Update model_vector = model_vector - XTE
-        model_vector = rikai_substract_vector(model_vector, XTE_vector, model_vector, error);
+        model_vector = rikai_subtract_vector(model_vector, XTE_vector, model_vector, error);
     }
 
     goto prepare_for_exit;
