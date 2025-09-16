@@ -21,7 +21,7 @@ uint8_t callback_on_iteration_complete(uint64_t iteration, double error_value, r
         if (error_count < 100000)
         {
             iterations[error_count] = iteration;
-            errors[error_count] = error_value * -1.0; // Store positive error value
+            errors[error_count] = error_value;
             error_count++;
         }
 
@@ -31,13 +31,13 @@ uint8_t callback_on_iteration_complete(uint64_t iteration, double error_value, r
         //         rikai_vector_get(model_vector, 0, NULL));
         // fflush(fit_plot);
 
-        // fprintf(error_plot, "plot '-' with linespoints\n");
-        // for (uint64_t i = 0; i < error_count; i++)
-        // {
-        //     fprintf(error_plot, "%llu %f\n", iterations[i], errors[i]);
-        // }
-        // fprintf(error_plot, "e\n");
-        // fflush(error_plot);
+        fprintf(error_plot, "plot '-' with linespoints\n");
+        for (uint64_t i = 0; i < error_count; i++)
+        {
+            fprintf(error_plot, "%llu %f\n", iterations[i], errors[i]);
+        }
+        fprintf(error_plot, "e\n");
+        fflush(error_plot);
     }
 
     return 1; // Return 1 to continue training, return 0 to stop training

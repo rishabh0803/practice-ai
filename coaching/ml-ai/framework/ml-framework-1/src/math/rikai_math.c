@@ -495,7 +495,7 @@ rikai_vector *rikai_sigmoid_vector(const rikai_vector *vector, rikai_vector *sig
     for (i = 0; i < vector_size; i++)
     {
         value = rikai_vector_get(vector, i, error);
-        value = 1.0 / (1.0 + pow(E, -value));
+        value = 1.0 / (1.0 + exp(-value));
         rikai_vector_set(result_vector, i, value, error);
     }
 
@@ -542,7 +542,7 @@ rikai_vector *rikai_log_vector(const rikai_vector *vector, rikai_vector *log_vec
 
     for (i = 0; i < vector_size; i++)
     {
-        value = rikai_vector_get(vector, i, error) + 1e-4; // Adding a small constant to avoid log(0)
+        value = rikai_vector_get(vector, i, error) + 1e-5; // Adding a small constant to avoid log(0)
         if (value <= 0.0)
         {
             sprintf(error_message, "Logarithm undefined for non-positive value %f at index %u", value, i);
