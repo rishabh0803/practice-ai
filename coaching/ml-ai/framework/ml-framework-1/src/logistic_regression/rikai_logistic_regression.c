@@ -104,7 +104,11 @@ rikai_vector *rikai_logistic_regression_fit(
     if (theta_vector == NULL)
         goto catch_error;
 
-    rikai_vector_fill_random(theta_vector, NULL);
+    // rikai_vector_fill_random(theta_vector, NULL);
+    for (i = 0; i < theta_vector_size; i++)
+    {
+        rikai_vector_set(theta_vector, i, 1000.0, NULL);
+    }
 
     // 3. Prepare other vectors and matrices
     X_theta_vector = rikai_vector_create_new(X_matrix_rows, error);

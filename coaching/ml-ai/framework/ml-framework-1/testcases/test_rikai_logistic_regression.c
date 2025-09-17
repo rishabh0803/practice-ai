@@ -14,7 +14,7 @@ uint64_t error_count = 0;
 // ----------------------------- Callback Function ------------------------------
 uint8_t callback_on_iteration_complete(uint64_t iteration, double error_value, rikai_vector *model_vector)
 {
-    if (iteration % 1000 == 0)
+    if (iteration % 100 == 0)
     {
         printf("Iteration: %llu, Error Value: %12.12f\n", iteration, error_value);
 
