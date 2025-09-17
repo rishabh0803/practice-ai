@@ -25,19 +25,22 @@ uint8_t callback_on_iteration_complete(uint64_t iteration, double error_value, r
             error_count++;
         }
 
+        rikai_vector_print(stdout, model_vector, NULL);
+        printf("\n");
+
         // fprintf(fit_plot, "plot '%s' using 1:2 with points pt 7 title 'Data', %f*x+%f title 'Line' lw 2\n",
         //         filename,
         //         rikai_vector_get(model_vector, 1, NULL),
         //         rikai_vector_get(model_vector, 0, NULL));
         // fflush(fit_plot);
 
-        fprintf(error_plot, "plot '-' with linespoints\n");
-        for (uint64_t i = 0; i < error_count; i++)
-        {
-            fprintf(error_plot, "%llu %f\n", iterations[i], errors[i]);
-        }
-        fprintf(error_plot, "e\n");
-        fflush(error_plot);
+        // fprintf(error_plot, "plot '-' with linespoints\n");
+        // for (uint64_t i = 0; i < error_count; i++)
+        // {
+        //     fprintf(error_plot, "%llu %f\n", iterations[i], errors[i]);
+        // }
+        // fprintf(error_plot, "e\n");
+        // fflush(error_plot);
     }
 
     return 1; // Return 1 to continue training, return 0 to stop training
