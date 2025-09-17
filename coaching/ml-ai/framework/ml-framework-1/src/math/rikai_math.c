@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define E 2.718281828459045
+#define E 2.718
 
 rikai_matrix *rikai_multiply_matrix(const rikai_matrix *left_matrix, const rikai_matrix *right_matrix, rikai_matrix *product_matrix_container, rikai_err *error)
 {
@@ -495,7 +495,12 @@ rikai_vector *rikai_sigmoid_vector(const rikai_vector *vector, rikai_vector *sig
     for (i = 0; i < vector_size; i++)
     {
         value = rikai_vector_get(vector, i, error);
-        value = 1.0 / (1.0 + exp(-value));
+        if (value < -10.0)
+            value = 0.0;
+        else if (value > 10.0)
+            value = 1.0;
+        else
+            value = 1.0 / (1.0 + pow(E, -value));
         rikai_vector_set(result_vector, i, value, error);
     }
 
@@ -542,7 +547,7 @@ rikai_vector *rikai_log_vector(const rikai_vector *vector, rikai_vector *log_vec
 
     for (i = 0; i < vector_size; i++)
     {
-        value = rikai_vector_get(vector, i, error) + 1e-5; // Adding a small constant to avoid log(0)
+        value = rikai_vector_get(vector, i, error) + 0.00001; // Adding a small constant to avoid log(0)
         if (value <= 0.0)
         {
             sprintf(error_message, "Logarithm undefined for non-positive value %f at index %u", value, i);
