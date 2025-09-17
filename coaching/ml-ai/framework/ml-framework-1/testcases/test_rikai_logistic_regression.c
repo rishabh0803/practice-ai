@@ -27,13 +27,13 @@ uint8_t callback_on_iteration_complete(uint64_t iteration, double error_value, r
         // rikai_vector_print(stdout, model_vector, NULL);
         // printf("\n");
 
-        // fprintf(error_plot, "plot '-' with linespoints\n");
-        // for (uint64_t i = 0; i < error_count; i++)
-        // {
-        //     fprintf(error_plot, "%llu %f\n", iterations[i], errors[i]);
-        // }
-        // fprintf(error_plot, "e\n");
-        // fflush(error_plot);
+        fprintf(error_plot, "plot '-' with linespoints\n");
+        for (uint64_t i = 0; i < error_count; i++)
+        {
+            fprintf(error_plot, "%llu %f\n", iterations[i], errors[i]);
+        }
+        fprintf(error_plot, "e\n");
+        fflush(error_plot);
     }
 
     return 1; // Return 1 to continue training, return 0 to stop training
@@ -79,7 +79,7 @@ int main(int c, char *v[])
         return 1;
     }
 
-    fprintf(error_plot, "set term wxt size 1248,650 position 1248,800\n");
+    fprintf(error_plot, "set term wxt size 1248,650 position 1248,1200\n");
     fprintf(error_plot, "set title 'Training Error'\n");
     fprintf(error_plot, "set xlabel 'Iteration'\n");
     fprintf(error_plot, "set ylabel 'Error'\n");

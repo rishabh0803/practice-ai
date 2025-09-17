@@ -500,7 +500,7 @@ rikai_vector *rikai_sigmoid_vector(const rikai_vector *vector, rikai_vector *sig
         else if (value > 10.0)
             value = 1.0;
         else
-            value = 1.0 / (1.0 + pow(E, -value));
+            value = 1.0 / (1.0 + exp(-value));
         rikai_vector_set(result_vector, i, value, error);
     }
 
