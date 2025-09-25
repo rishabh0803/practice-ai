@@ -13,7 +13,7 @@ uint64_t error_count = 0;
 // ----------------------------- Callback Function ------------------------------
 uint8_t callback_on_iteration_complete(uint64_t iteration, double error_value, rikai_vector *model_vector)
 {
-    if (iteration % 100 == 0)
+    if (iteration % 1000 == 0)
     {
         printf("Iteration: %llu, Error Value: %12.12f\n", iteration, error_value);
 
@@ -23,9 +23,6 @@ uint8_t callback_on_iteration_complete(uint64_t iteration, double error_value, r
             errors[error_count] = error_value;
             error_count++;
         }
-
-        // rikai_vector_print(stdout, model_vector, NULL);
-        // printf("\n");
 
         fprintf(error_plot, "plot '-' with linespoints\n");
         for (uint64_t i = 0; i < error_count; i++)

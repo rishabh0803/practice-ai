@@ -104,7 +104,11 @@ rikai_vector *rikai_logistic_regression_fit(
     if (theta_vector == NULL)
         goto catch_error;
 
-    rikai_vector_fill_random(theta_vector, NULL);
+    // rikai_vector_fill_random(theta_vector, NULL);
+    for (i = 0; i < theta_vector_size; i++)
+    {
+        rikai_vector_set(theta_vector, i, 10000.0, NULL);
+    }
 
     // 3. Prepare other vectors and matrices
     X_theta_vector = rikai_vector_create_new(X_matrix_rows, error);
@@ -178,11 +182,8 @@ rikai_vector *rikai_logistic_regression_fit(
         // using E_vector to store the final result
         E_vector = rikai_sum_vectors(log_H, log_one_minus_H, E_vector, error);
 
-        // Calculate ET = E^T
-        ET_vector = rikai_vector_transpose_create_new(E_vector, ET_vector, error);
-
-        // error_value = ET * E
-        error_value = rikai_multiple_vector_get_scalar(ET_vector, E_vector, error);
+        // Calculate error_value = sum(E) * -1 / m
+        error_value = rikai_sum_vector(E_vector, error);
 
         // error_value = -1 / m * error_value
         error_value = error_value * -1.0 / (double)X_matrix_rows;

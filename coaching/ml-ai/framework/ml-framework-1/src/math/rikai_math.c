@@ -547,14 +547,16 @@ rikai_vector *rikai_log_vector(const rikai_vector *vector, rikai_vector *log_vec
 
     for (i = 0; i < vector_size; i++)
     {
-        value = rikai_vector_get(vector, i, error) + 0.00001; // Adding a small constant to avoid log(0)
+        value = rikai_vector_get(vector, i, error);
         if (value <= 0.0)
         {
-            sprintf(error_message, "Logarithm undefined for non-positive value %f at index %u", value, i);
-            rikai_set_error(error, error_message, RIKAI_MATH_DOMAIN_ERROR);
-            rikai_vector_destroy(result_vector, error);
-            return NULL;
+            value = 0.0000001;
+            // sprintf(error_message, "Logarithm undefined for non-positive value %f at index %u", value, i);
+            // rikai_set_error(error, error_message, RIKAI_MATH_DOMAIN_ERROR);
+            // rikai_vector_destroy(result_vector, error);
+            // return NULL;
         }
+
         value = log(value);
         rikai_vector_set(result_vector, i, value, error);
     }
