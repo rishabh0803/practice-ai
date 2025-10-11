@@ -23,4 +23,14 @@ double rikai_sum_vector(const rikai_vector *vector, rikai_err *error);
 
 double rikai_mean_vector(const rikai_vector *vector, rikai_err *error);
 
+rikai_vector *rikai_sigmoid_vector(const rikai_vector *vector, rikai_vector *sigmoid_vector_container, rikai_err *error);
+
+rikai_vector *rikai_log_vector(const rikai_vector *vector, rikai_vector *log_vector_container, rikai_err *error);
+
+rikai_vector *rikai_hadamard_product_vector(const rikai_vector *left_vector, const rikai_vector *right_vector, rikai_vector *product_vector_container, rikai_err *error);
+
+rikai_vector *rikai_subtract_vector_from_scalar(double value, const rikai_vector *vector, rikai_vector *difference_vector_container, rikai_err *error);
+
+rikai_vector *rikai_sum_vectors(const rikai_vector *left_vector, const rikai_vector *right_vector, rikai_vector *sum_vector_container, rikai_err *error);
+
 #endif

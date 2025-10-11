@@ -9,5 +9,6 @@
 #include <ml_math/rikai_ml_math.h>
 #include <data_provider/rikai_data_provider.h>
 #include <linear_regression/rikai_linear_regression.h>
+#include <logistic_regression/rikai_logistic_regression.h>
 
 #endif
