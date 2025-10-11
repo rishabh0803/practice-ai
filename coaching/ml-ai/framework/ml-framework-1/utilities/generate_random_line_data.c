@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define NUM_POINTS 100    // Number of data points
+#define NUM_POINTS 10000    // Number of data points
 #define SLOPE 45          // m in y = mx + c
 #define INTERCEPT 0       // c in y = mx + c
 #define NOISE_LEVEL 50    // Adjust this to control noise
