@@ -287,7 +287,7 @@ rikai_vector *rikai_logistic_regression_predict(const rikai_matrix *x_matrix, co
 		goto catch_error;
 
 	// X_theta = X * model  
-	X_theta = rikai_multiply_matrix_with_vector(X_matrix, X_theta, X_theta, error);
+	X_theta = rikai_multiply_matrix_with_vector(X_matrix, model_vector, X_theta, error);
 	if (X_theta == NULL)
 		goto catch_error;
 
@@ -300,6 +300,7 @@ rikai_vector *rikai_logistic_regression_predict(const rikai_matrix *x_matrix, co
 
 catch_error:
 	rikai_matrix_destroy(X_matrix, error);
+	rikai_vector_destroy(X_theta, error);
 
 	return H_vector;
 }
