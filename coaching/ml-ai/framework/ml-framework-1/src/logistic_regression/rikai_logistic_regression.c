@@ -1,5 +1,7 @@
 #include <rikai.h>
 #include <private_rikai.h>
+#include <stdlib.h>
+#include <time.h>
 
 rikai_vector *rikai_logistic_regression_fit(
     const rikai_matrix *x_matrix,
@@ -104,10 +106,12 @@ rikai_vector *rikai_logistic_regression_fit(
     if (theta_vector == NULL)
         goto catch_error;
 
-    // rikai_vector_fill_random(theta_vector, NULL);
+    // Randomly initialize theta_vector
+    // TODO:: Create function for this
+    srand(time(0));
     for (i = 0; i < theta_vector_size; i++)
     {
-        rikai_vector_set(theta_vector, i, 10000.0, NULL);
+        rikai_vector_set(theta_vector, i, ((double)rand() / (double)RAND_MAX) * 0.01, NULL);
     }
 
     // 3. Prepare other vectors and matrices

@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define E 2.718
-
 rikai_matrix *rikai_multiply_matrix(const rikai_matrix *left_matrix, const rikai_matrix *right_matrix, rikai_matrix *product_matrix_container, rikai_err *error)
 {
     uint32_t left_matrix_rows, left_matrix_columns;
