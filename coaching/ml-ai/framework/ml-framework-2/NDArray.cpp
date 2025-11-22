@@ -1,4 +1,5 @@
 #include <vector>
+#include <unordered_set>
 #include <iostream>
 #include <stdint.h>
 #include <numeric>
@@ -6,7 +7,8 @@
 #include <stdarg.h>
 
 #define T1 double
-
+// ------------------------------------------------------------------------------
+// NDArrayException class
 class NDArrayException : public std::exception
 {
 private:
@@ -25,20 +27,48 @@ const char *NDArrayException::what() const noexcept
 }
 
 // ------------------------------------------------------------------------------
-
+class NDArrayNode;
 class NDArray
 {
 private:
     std::vector<T1> data;
     std::vector<uint32_t> dimensions;
+    std::unordered_set<NDArrayNode *> nodes;
+    void _set(uint32_t, T1);
+    T1 _get(uint32_t) const;
 
 public:
     NDArray(const std::vector<uint32_t> &);
     // compiler will introduce copy/move constructors and copy/move assignment operators
 
-    void set(uint32_t, ...);
-    T1 get(uint32_t, ...) const;
+    template <typename TT>
+    void set(TT ...);
+
+    template <typename TT>
+    T1 get(TT ...) const;
+
+    NDArrayNode operator[](uint32_t);
+    operator T1() const;
+
+friend class NDArrayNode;
 };
+// ------------------------------------------------------------------------------
+
+class NDArrayNode
+{
+private:
+    NDArray *array;
+    std::vector<uint32_t> indices;
+    NDArrayNode(NDArray *, const std::vector<uint32_t> &);
+
+public:
+    NDArrayNode operator[](uint32_t);
+    operator T1() const; 
+
+friend class NDArray;
+};
+// ------------------------------------------------------------------------------
+// NDArray implementations
 
 NDArray::NDArray(const std::vector<uint32_t> &_dimensions)
 {
@@ -61,35 +91,50 @@ NDArray::NDArray(const std::vector<uint32_t> &_dimensions)
     this->data.resize(product);
 }
 
-void NDArray::set(uint32_t index1, ...)
+void NDArray::_set(uint32_t flat_index, T1 value)
 {
-    va_list args;
-    va_start(args, index1);
-
-    uint32_t flat_index = index1;
-    for (size_t dim = 1; dim < dimensions.size(); ++dim)
-    {
-        uint32_t next_index = va_arg(args, uint32_t);
-        flat_index = flat_index * dimensions[dim] + next_index;
-    }
-
-    data[flat_index] = va_arg(args, T1);
-    va_end(args);
+    data[flat_index] = value;
 }
 
-T1 NDArray::get(uint32_t index1, ...) const
+T1 NDArray::_get(uint32_t flat_index) const
 {
-    return 0.0;
+    return data[flat_index];
 }
 
-int main()
+template <typename TT>
+void NDArray::set(TT ...)
 {
 }
 
-T1 NDArray::get(uint32_t index1, ...) const
+template <typename TT>
+T1 NDArray::get(TT ...) const
 {
     return 0.0;
 }
+
+NDArrayNode NDArray::operator[](uint32_t index)
+{
+}
+
+NDArray::operator T1() const
+{
+}
+// ------------------------------------------------------------------------------
+// NDArrayNode implementations
+
+NDArrayNode::NDArrayNode(NDArray *_array, const std::vector<uint32_t> &_indices)
+{
+}
+
+NDArrayNode NDArrayNode::operator[](uint32_t index)
+{
+}
+
+NDArrayNode::operator T1() const
+{
+}
+
+// ------------------------------------------------------------------------------
 
 int main()
 {
