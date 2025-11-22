@@ -26,6 +26,7 @@ Thumbs.db
 
 *.data
 *.csv
+*.vs
 
 # CMake / Make build dirs
 build/
