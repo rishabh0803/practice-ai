@@ -65,11 +65,17 @@ private:
     NDArray *ndArray;
     std::vector<uint32_t> indices;
     NDArrayNode(NDArray *, const std::vector<uint32_t> &);
+    uint32_t computeFlatIndex() const;
 
 public:
     NDArrayNode operator[](uint32_t);
     operator T1() const;
     T1 operator=(T1);
+
+    NDArrayNode(const NDArrayNode &);
+    NDArrayNode(NDArrayNode &&);
+    NDArrayNode &operator=(const NDArrayNode &);
+    NDArrayNode &operator=(NDArrayNode &&);
     ~NDArrayNode();
 
     friend class NDArray;
@@ -88,10 +94,11 @@ NDArray::NDArray(const std::vector<uint32_t> &_dimensions)
     if (product == 0)
     {
         std::ostringstream oss;
+        oss << "Size of dimension cannot be zero: ";
         for (uint32_t index : _dimensions)
             oss << "[" << index << "]";
 
-        throw NDArrayException("Dimensions cannot contain zero" + oss.str());
+        throw NDArrayException(oss.str());
     }
 
     this->dimensions = _dimensions;
@@ -165,12 +172,12 @@ NDArray &NDArray::operator=(NDArray &&other)
 
 void NDArray::_set(uint32_t flat_index, T1 value)
 {
-    data[flat_index] = value;
+    this->data[flat_index] = value;
 }
 
 T1 NDArray::_get(uint32_t flat_index) const
 {
-    return data[flat_index];
+    return this->data[flat_index];
 }
 
 template <typename... TT>
@@ -183,33 +190,32 @@ void NDArray::set(TT... arguments)
     ((value = arguments), ...);
 
     indices.pop_back();
-    if (indices.size() != dimensions.size())
+    if (indices.size() != this->dimensions.size())
     {
         ostringstream oss;
-        oss << "Invalid number of dimensions, expected " << dimensions.size() << ", got " << indices.size();
+        oss << "Array has " << this->dimensions.size() << " dimensions, but " << indices.size() << " indices were provided";
         throw NDArrayException(oss.str());
     }
 
     uint64_t flat_index = 0;
     uint32_t stride = 1;
 
-    for (int i = dimensions.size() - 1; i >= 0; --i)
+    for (int i = this->dimensions.size() - 1; i >= 0; --i)
     {
-        if (indices[i] >= dimensions[i])
+        if (indices[i] >= this->dimensions[i])
         {
             ostringstream oss;
-            oss << "Index out of bounds (";
+            oss << "Index out of bounds";
             for (uint32_t index : indices)
-                oss << index << ", ";
-            oss << ") for dimensions (";
-            for (uint32_t dim : dimensions)
-                oss << dim << ", ";
-            oss << ")";
+                oss << "[" << index << "]";
+            oss << ", Size of array is ";
+            for (uint32_t dim : this->dimensions)
+                oss << "[" << dim << "]";
             throw NDArrayException(oss.str());
         }
 
         flat_index += indices[i] * stride;
-        stride *= dimensions[i];
+        stride *= this->dimensions[i];
     }
 
     this->data[flat_index] = value;
@@ -223,29 +229,28 @@ T1 NDArray::get(TT... arguments) const
     if (indices.size() != dimensions.size())
     {
         ostringstream oss;
-        oss << "Invalid number of dimensions, expected " << dimensions.size() << ", got " << indices.size();
+        oss << "Array has " << dimensions.size() << " dimensions, but " << indices.size() << " indices were provided";
         throw NDArrayException(oss.str());
     }
 
     uint64_t flat_index = 0;
     uint32_t stride = 1;
-    for (int i = dimensions.size() - 1; i >= 0; --i)
+    for (int i = this->dimensions.size() - 1; i >= 0; --i)
     {
-        if (indices[i] >= dimensions[i])
+        if (indices[i] >= this->dimensions[i])
         {
             ostringstream oss;
-            oss << "Index out of bounds (";
+            oss << "Index out of bounds";
             for (uint32_t index : indices)
-                oss << index << ", ";
-            oss << ") for dimensions (";
-            for (uint32_t dim : dimensions)
-                oss << dim << ", ";
-            oss << ")";
+                oss << "[" << index << "]";
+            oss << ", Size of array is ";
+            for (uint32_t dim : this->dimensions)
+                oss << "[" << dim << "]";
             throw NDArrayException(oss.str());
         }
 
         flat_index += indices[i] * stride;
-        stride *= dimensions[i];
+        stride *= this->dimensions[i];
     }
 
     return this->data[flat_index];
@@ -253,13 +258,6 @@ T1 NDArray::get(TT... arguments) const
 
 NDArrayNode NDArray::operator[](uint32_t index)
 {
-    if (index >= dimensions[0])
-    {
-        ostringstream oss;
-        oss << "Index out of bounds (" << index << ") for dimension size (" << dimensions[0] << ")";
-        throw NDArrayException(oss.str());
-    }
-
     return NDArrayNode(this, {index});
 }
 
@@ -278,6 +276,61 @@ NDArrayNode::NDArrayNode(NDArray *array, const std::vector<uint32_t> &indices)
         this->ndArray->nodes.insert(this);
 }
 
+NDArrayNode::NDArrayNode(const NDArrayNode &other)
+{
+    this->ndArray = other.ndArray;
+    this->indices = other.indices;
+    if (this->ndArray)
+        this->ndArray->nodes.insert(this);
+}
+
+NDArrayNode::NDArrayNode(NDArrayNode &&other)
+{
+    this->ndArray = other.ndArray;
+    this->indices = std::move(other.indices);
+
+    if (this->ndArray)
+    {
+        this->ndArray->nodes.erase(&other);
+        this->ndArray->nodes.insert(this);
+    }
+    // TODO::
+    other.ndArray = NULL;
+    other.indices.resize(0);
+}
+
+NDArrayNode &NDArrayNode::operator=(const NDArrayNode &other)
+{
+    if (this->ndArray == NULL)
+    {
+        throw NDArrayException("NDArrayNode is no longer valid");
+    }
+
+    if (other.ndArray == NULL)
+    {
+        throw NDArrayException("Assigned NDArrayNode is no longer valid");
+    }
+
+    this->ndArray->data[this->computeFlatIndex()] = other.ndArray->data[other.computeFlatIndex()];
+    return *this;
+}
+
+NDArrayNode &NDArrayNode::operator=(NDArrayNode &&other)
+{
+    if (this->ndArray == NULL)
+    {
+        throw NDArrayException("NDArrayNode is no longer valid");
+    }
+
+    if (other.ndArray == NULL)
+    {
+        throw NDArrayException("Assigned NDArrayNode is no longer valid");
+    }
+
+    this->ndArray->data[this->computeFlatIndex()] = other.ndArray->data[other.computeFlatIndex()];
+    return *this;
+}
+
 NDArrayNode::~NDArrayNode()
 {
     if (this->ndArray)
@@ -288,7 +341,7 @@ NDArrayNode NDArrayNode::operator[](uint32_t index)
 {
     if (this->ndArray == NULL)
     {
-        throw NDArrayException("NDArrayNode is no longer valid");
+        throw NDArrayException("Invalid NDArrayNode, array does not exist");
     }
 
     if (indices.size() == this->ndArray->dimensions.size())
@@ -305,46 +358,58 @@ NDArrayNode::operator T1() const
 {
     if (this->ndArray == NULL)
     {
-        throw NDArrayException("NDArrayNode is no longer valid");
+        throw NDArrayException("Invalid NDArrayNode, array does not exist");
     }
 
-    if (indices.size() != this->ndArray->dimensions.size())
-    {
-        throw NDArrayException("Cannot convert NDArrayNode to scalar, not all indices specified");
-    }
-
-    uint64_t flat_index = 0;
-    uint32_t stride = 1;
-    for (int i = this->ndArray->dimensions.size() - 1; i >= 0; --i)
-    {
-        flat_index += indices[i] * stride;
-        stride *= this->ndArray->dimensions[i];
-    }
-    return this->ndArray->data[flat_index];
+    return this->ndArray->data[this->computeFlatIndex()];
 }
 
 T1 NDArrayNode::operator=(T1 value)
 {
     if (this->ndArray == NULL)
     {
-        throw NDArrayException("NDArrayNode is no longer valid");
+        throw NDArrayException("Invalid NDArrayNode, array does not exist");
     }
 
-    if (indices.size() != this->ndArray->dimensions.size())
+    this->ndArray->data[this->computeFlatIndex()] = value;
+    return value;
+}
+
+uint32_t NDArrayNode::computeFlatIndex() const
+{
+
+    if (this->indices.size() != this->ndArray->dimensions.size())
     {
-        throw NDArrayException("Cannot assign to NDArrayNode, not all indices specified");
+        ostringstream oss;
+        oss << "Index out of bounds ";
+        for (uint32_t index : this->indices)
+            oss << "[" << index << "]";
+        oss << ", Size of array is ";
+        for (uint32_t dim : this->ndArray->dimensions)
+            oss << "[" << dim << "]";
+        throw NDArrayException(oss.str());
     }
 
     uint64_t flat_index = 0;
     uint32_t stride = 1;
     for (int i = this->ndArray->dimensions.size() - 1; i >= 0; --i)
     {
-        flat_index += indices[i] * stride;
+        if (this->indices[i] >= this->ndArray->dimensions[i])
+        {
+            ostringstream oss;
+            oss << "Index out of bounds";
+            for (uint32_t index : this->indices)
+                oss << "[" << index << "]";
+            oss << ", Size of array is ";
+            for (uint32_t dim : this->ndArray->dimensions)
+                oss << "[" << dim << "]";
+            throw NDArrayException(oss.str());
+        }
+
+        flat_index += this->indices[i] * stride;
         stride *= this->ndArray->dimensions[i];
     }
-
-    this->ndArray->data[flat_index] = value;
-    return value;
+    return flat_index;
 }
 
 // ------------------------------------------------------------------------------
