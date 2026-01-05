@@ -37,6 +37,43 @@ private:
     std::unordered_set<NDArrayNode *> nodes;
     void _set(uint32_t, T1);
     T1 _get(uint32_t) const;
+    uint32_t computeFlatIndex(const std::vector<uint32_t> &) const;
+
+    void just_do_it(vector<uint32_t> source_from, vector<uint32_t> source_to)
+    {
+        int source_index;
+
+        int source_last_index = source_from.size() - 1;
+        vector<uint32_t> source_tmp_indices = source_from;
+        while (1)
+        {
+            while (source_tmp_indices[source_last_index] <= source_to[source_last_index])
+            {
+                for (auto x : source_tmp_indices)
+                    cout << "[" << x << "]";
+                cout << " = " << this->data[this->computeFlatIndex(source_tmp_indices)] << " ";
+
+                cout << endl;
+                source_tmp_indices[source_last_index]++;
+            }
+
+            source_index = source_last_index - 1;
+            while (source_index >= 0 && source_tmp_indices[source_index] == source_to[source_index])
+                source_index--;
+
+            if (source_index < 0)
+                break;
+
+            source_tmp_indices[source_index]++;
+            source_index++;
+
+            while (source_index <= source_last_index)
+            {
+                source_tmp_indices[source_index] = source_from[source_index];
+                source_index++;
+            }
+        }
+    }
 
 public:
     NDArray(const std::vector<uint32_t> &);
@@ -56,6 +93,48 @@ public:
     operator T1() const;
 
     friend class NDArrayNode;
+
+    void print()
+    {
+        vector<uint32_t> source_from(dimensions.size(), 0);
+        vector<uint32_t> source_to = dimensions;
+        for (auto &x : source_to)
+            x--;
+
+        just_do_it(source_from, source_to);
+    }
+
+    static void fill(NDArray &array, vector<uint32_t> from, vector<uint32_t> to, T1 value)
+    {
+        int index;
+
+        int last_index = from.size() - 1;
+        vector<uint32_t> source_tmp_indices = from;
+        while (1)
+        {
+            while (source_tmp_indices[last_index] <= to[last_index])
+            {
+                array.data[array.computeFlatIndex(source_tmp_indices)] = value;
+                source_tmp_indices[last_index]++;
+            }
+
+            index = last_index - 1;
+            while (index >= 0 && source_tmp_indices[index] == to[index])
+                index--;
+
+            if (index < 0)
+                break;
+
+            source_tmp_indices[index]++;
+            index++;
+
+            while (index <= last_index)
+            {
+                source_tmp_indices[index] = from[index];
+                index++;
+            }
+        }
+    }
 };
 // ------------------------------------------------------------------------------
 
@@ -180,6 +259,44 @@ T1 NDArray::_get(uint32_t flat_index) const
     return this->data[flat_index];
 }
 
+uint32_t NDArray::computeFlatIndex(const std::vector<uint32_t> &indices) const
+{
+    if (indices.size() != this->dimensions.size())
+    {
+        ostringstream oss;
+        oss << "Index out of bounds ";
+        for (uint32_t index : indices)
+            oss << "[" << index << "]";
+        oss << ", Size of array is ";
+        for (uint32_t dim : this->dimensions)
+            oss << "[" << dim << "]";
+        throw NDArrayException(oss.str());
+    }
+
+    uint64_t flat_index = 0;
+    uint32_t stride = 1;
+
+    for (int i = this->dimensions.size() - 1; i >= 0; --i)
+    {
+        if (indices[i] >= this->dimensions[i])
+        {
+            ostringstream oss;
+            oss << "Index out of bounds";
+            for (uint32_t index : indices)
+                oss << "[" << index << "]";
+            oss << ", Size of array is ";
+            for (uint32_t dim : this->dimensions)
+                oss << "[" << dim << "]";
+            throw NDArrayException(oss.str());
+        }
+
+        flat_index += indices[i] * stride;
+        stride *= this->dimensions[i];
+    }
+
+    return flat_index;
+}
+
 template <typename... TT>
 void NDArray::set(TT... arguments)
 {
@@ -190,35 +307,8 @@ void NDArray::set(TT... arguments)
     ((value = arguments), ...);
 
     indices.pop_back();
-    if (indices.size() != this->dimensions.size())
-    {
-        ostringstream oss;
-        oss << "Array has " << this->dimensions.size() << " dimensions, but " << indices.size() << " indices were provided";
-        throw NDArrayException(oss.str());
-    }
 
-    uint64_t flat_index = 0;
-    uint32_t stride = 1;
-
-    for (int i = this->dimensions.size() - 1; i >= 0; --i)
-    {
-        if (indices[i] >= this->dimensions[i])
-        {
-            ostringstream oss;
-            oss << "Index out of bounds";
-            for (uint32_t index : indices)
-                oss << "[" << index << "]";
-            oss << ", Size of array is ";
-            for (uint32_t dim : this->dimensions)
-                oss << "[" << dim << "]";
-            throw NDArrayException(oss.str());
-        }
-
-        flat_index += indices[i] * stride;
-        stride *= this->dimensions[i];
-    }
-
-    this->data[flat_index] = value;
+    this->data[this->computeFlatIndex(indices)] = value;
 }
 
 template <typename... TT>
@@ -226,34 +316,8 @@ T1 NDArray::get(TT... arguments) const
 {
     vector<uint32_t> indices;
     (indices.push_back((uint32_t)arguments), ...);
-    if (indices.size() != dimensions.size())
-    {
-        ostringstream oss;
-        oss << "Array has " << dimensions.size() << " dimensions, but " << indices.size() << " indices were provided";
-        throw NDArrayException(oss.str());
-    }
 
-    uint64_t flat_index = 0;
-    uint32_t stride = 1;
-    for (int i = this->dimensions.size() - 1; i >= 0; --i)
-    {
-        if (indices[i] >= this->dimensions[i])
-        {
-            ostringstream oss;
-            oss << "Index out of bounds";
-            for (uint32_t index : indices)
-                oss << "[" << index << "]";
-            oss << ", Size of array is ";
-            for (uint32_t dim : this->dimensions)
-                oss << "[" << dim << "]";
-            throw NDArrayException(oss.str());
-        }
-
-        flat_index += indices[i] * stride;
-        stride *= this->dimensions[i];
-    }
-
-    return this->data[flat_index];
+    return this->data[this->computeFlatIndex(indices)];
 }
 
 NDArrayNode NDArray::operator[](uint32_t index)
@@ -418,21 +482,26 @@ int main()
 {
     try
     {
-        NDArray a({10});
-        a.set(0, 10.0);
+        // NDArray a({10});
+        // a.set(0, 10.0);
 
-        NDArrayNode b = a[0];
-        double val = b;
-        cout << "Value at a[0]: " << val << endl;
+        // NDArrayNode b = a[0];
+        // double val = b;
+        // cout << "Value at a[0]: " << val << endl;
 
-        NDArray c({3, 4});
-        c.set(2, 3, 42.0);
-        c[0][0] = 5;
+        // NDArray c({3, 4});
+        // c.set(2, 3, 42.0);
+        // c[0][0] = 5;
 
-        cout << "Value at c[2,3]: " << c.get(2, 3) << endl;
-        cout << "Value at c[0,0]: " << c[0][0] << endl;
+        // cout << "Value at c[2,3]: " << c.get(2, 3) << endl;
+        // cout << "Value at c[0,0]: " << c[0][0] << endl;
 
-        c[1] = 10;
+        // c[1] = 10;
+
+        NDArray d({4, 5});
+
+        d.NDArray::fill(d, {1, 2}, {2, 4}, 7.5);
+        d.print();
     }
     catch (const NDArrayException &e)
     {
