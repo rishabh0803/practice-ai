@@ -135,6 +135,48 @@ public:
             }
         }
     }
+
+    static void copy(NDArray &target, vector<uint32_t> target_from,
+                     const NDArray &source, vector<uint32_t> source_from, vector<uint32_t> source_to)
+    {
+        int i, k;
+        T1 value;
+
+        int last_index = source_from.size() - 1;
+        int offset = target.dimensions.size() - source.dimensions.size();
+
+        vector<uint32_t> source_tmp_indices = source_from;
+        vector<uint32_t> target_tmp_indices = target_from;
+
+        while (1)
+        {
+            while (source_tmp_indices[last_index] <= source_to[last_index])
+            {
+                value = source.data[source.computeFlatIndex(source_tmp_indices)];
+                target.data[target.computeFlatIndex(target_tmp_indices)] = value;
+
+                source_tmp_indices[last_index]++;
+                target_tmp_indices[last_index + offset]++;
+            }
+
+            k = last_index - 1;
+            while (k >= 0 && source_tmp_indices[k] == source_to[k])
+                k--;
+            if (k < 0)
+                break;
+
+            source_tmp_indices[k]++;
+            target_tmp_indices[k + offset]++;
+            k++;
+
+            while (k <= last_index)
+            {
+                source_tmp_indices[k] = source_from[k];
+                target_tmp_indices[k + offset] = target_from[k + offset];
+                k++;
+            }
+        }
+    }
 };
 // ------------------------------------------------------------------------------
 
@@ -482,26 +524,6 @@ int main()
 {
     try
     {
-        // NDArray a({10});
-        // a.set(0, 10.0);
-
-        // NDArrayNode b = a[0];
-        // double val = b;
-        // cout << "Value at a[0]: " << val << endl;
-
-        // NDArray c({3, 4});
-        // c.set(2, 3, 42.0);
-        // c[0][0] = 5;
-
-        // cout << "Value at c[2,3]: " << c.get(2, 3) << endl;
-        // cout << "Value at c[0,0]: " << c[0][0] << endl;
-
-        // c[1] = 10;
-
-        NDArray d({4, 5});
-
-        d.NDArray::fill(d, {1, 2}, {2, 4}, 7.5);
-        d.print();
     }
     catch (const NDArrayException &e)
     {
