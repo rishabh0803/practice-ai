@@ -39,12 +39,11 @@ void multiply_partially(struct wrapper *w)
     {
         for (c = 0; c < matrix_1_cols; c++)
         {
-            sum = 0.0;
+
             for (c1 = 0; c1 < matrix_2_cols; c1++)
             {
-                sum += (*matrix_1)[r * matrix_1_cols + c] * (*matrix_2)[c * matrix_2_cols + c1];
+                (*result_matrix)[r * matrix_2_cols + c1] += (*matrix_1)[r * matrix_1_cols + c] * (*matrix_2)[c * matrix_2_cols + c1];
             }
-            (*result_matrix)[r * matrix_2_cols + c1] = sum;
         }
     }
 }
@@ -74,7 +73,7 @@ int main()
         result_matrix[i] = 0.0;
 
     auto cores = std::thread::hardware_concurrency();
-    int number_of_threads = 16;
+    int number_of_threads = cores;
 
     int batch_size = matrix_1_rows / number_of_threads;
     if (matrix_1_rows % number_of_threads != 0)

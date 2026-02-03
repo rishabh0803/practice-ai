@@ -34,12 +34,10 @@ int main()
     {
         for (c = 0; c < matrix_1_cols; c++)
         {
-            sum = 0.0;
             for (c1 = 0; c1 < matrix_2_cols; c1++)
             {
-                sum += matrix_1[r * matrix_1_cols + c] * matrix_2[c * matrix_2_cols + c1];
+                result_matrix[r * matrix_2_cols + c1] += matrix_1[r * matrix_1_cols + c] * matrix_2[c * matrix_2_cols + c1];
             }
-            result_matrix[r * matrix_2_cols + c1] = sum;
         }
     }
 
