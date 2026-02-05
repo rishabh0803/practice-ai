@@ -39,6 +39,21 @@ private:
     T1 _get(uint32_t) const;
     uint32_t computeFlatIndex(const std::vector<uint32_t> &) const;
 
+    class InfixExpression
+    {
+    private:
+        NDArray *left;
+        NDArray *right;
+        char op;
+        InfixExpression(NDArray *left, char op, NDArray *right)
+        {
+            this->left = left;
+            this->right = right;
+            this->op = op;
+        }
+        friend class NDArray;
+    };
+
     void just_do_it(vector<uint32_t> source_from, vector<uint32_t> source_to)
     {
         int source_index;
@@ -175,6 +190,75 @@ public:
                 target_tmp_indices[k + offset] = target_from[k + offset];
                 k++;
             }
+        }
+    }
+
+    InfixExpression operator*(NDArray &right)
+    {
+        return InfixExpression(this, '*', &right);
+    }
+
+    NDArray operator=(InfixExpression expr)
+    {
+        if (expr.op == '*')
+        {
+            this->multiply(expr);
+        }
+        return *this;
+    }
+
+    void multiply(InfixExpression expr)
+    {
+        auto *left = expr.left;
+        auto left_array = left->data.data();
+        auto i = left->dimensions.size();
+        auto left_matrix_rows = left->dimensions[i - 2];
+        auto left_matrix_cols = left->dimensions[i - 1];
+        auto left_matrix_len = left_matrix_rows * left_matrix_cols;
+
+        auto *right = expr.right;
+        auto right_array = right->data.data();
+        i = right->dimensions.size();
+        auto right_matrix_rows = right->dimensions[i - 2];
+        auto right_matrix_cols = right->dimensions[i - 1];
+        auto right_matrix_len = right_matrix_rows * right_matrix_cols;
+
+        int number_of_matrices = 1;
+        if (i > 2)
+        {
+            for (int j = 0; j < i - 2; j++)
+                number_of_matrices *= left->dimensions[j];
+        }
+
+        // prefill the product array with 0.0
+        for (auto &v : this->data)
+            v = 0.0;
+
+        auto product_array = this->data.data();
+        auto product_matrix_len = left_matrix_rows * right_matrix_cols;
+
+        auto product_matrix = product_array;
+        auto left_matrix = left_array;
+        auto right_matrix = right_array;
+
+        int r, c, c1;
+        for (int m = 0; m < number_of_matrices; m++)
+        {
+#pragma omp parallel for private(c, c1)
+            for (r = 0; r < left_matrix_rows; r++)
+            {
+                for (c = 0; c < left_matrix_cols; c++)
+                {
+                    for (c1 = 0; c1 < right_matrix_cols; c1++)
+                    {
+                        product_matrix[r * right_matrix_cols + c1] += left_matrix[r * left_matrix_cols + c] * right_matrix[c * right_matrix_cols + c1];
+                    }
+                }
+            }
+
+            left_matrix += left_matrix_len;
+            right_matrix += right_matrix_len;
+            product_matrix += product_matrix_len;
         }
     }
 };
@@ -524,6 +608,38 @@ int main()
 {
     try
     {
+        NDArray left_array({2, 4, 3});
+        NDArray right_array({2, 3, 5});
+
+        double value = 1.0;
+        for (int i = 0; i < 2; i++)
+        {
+            value = 1.0;
+            for (int j = 0; j < 4; j++)
+            {
+                for (int k = 0; k < 3; k++)
+                {
+                    left_array.set(i, j, k, value++);
+                }
+            }
+        }
+
+        for (int i = 0; i < 2; i++)
+        {
+            value = 10.0;
+            for (int j = 0; j < 3; j++)
+            {
+                for (int k = 0; k < 5; k++)
+                {
+                    right_array.set(i, j, k, value++);
+                }
+            }
+        }
+
+        NDArray product_array({2, 4, 5});
+        product_array = left_array * right_array;
+
+        product_array.print();
     }
     catch (const NDArrayException &e)
     {
