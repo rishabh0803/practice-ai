@@ -18,7 +18,7 @@ public:
 csv_info ml_utils::get_csv_info(const string &filename, uint32_t skip_lines)
 {
     ifstream file(filename);
-    if (!file.fail())
+    if (file.fail())
         throw invalid_argument("Could not open file: " + filename);
 
     uint32_t i = 1;
@@ -55,7 +55,7 @@ csv_info ml_utils::get_csv_info(const string &filename, uint32_t skip_lines)
 void ml_utils::get_x_y(csv_info &csv, NDArray &x, NDArray &y)
 {
     ifstream file(csv.name());
-    if (!file.fail())
+    if (file.fail())
         throw invalid_argument("Could not open file: " + csv.name());
 
     uint32_t i = 1;

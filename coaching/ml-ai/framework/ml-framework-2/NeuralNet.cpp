@@ -26,7 +26,7 @@ int main()
     uint32_t number_of_layers = 5;
     uint32_t number_of_classes = 10;
 
-    vector<NDArray *> nu(number_of_layers);
+    vector<NDArray *> layer_activations(number_of_layers);
     vector<NDArray *> v(number_of_layers - 1);
     vector<NDArray *> model(number_of_layers - 1);
 
@@ -36,9 +36,9 @@ int main()
         v_dimensions[i] = nu_dimensions[i + 1];
 
     for (uint32_t i = 0; i < number_of_layers; i++)
-        nu[i] = new NDArray({nu_dimensions[i]});
+        layer_activations[i] = new NDArray({nu_dimensions[i]});
 
-    for (auto &x : nu)
+    for (auto &x : layer_activations)
         delete x;
     for (auto &x : v)
         delete x;
