@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 #include <unordered_set>
 #include <iostream>
@@ -106,6 +107,11 @@ public:
 
     NDArrayNode operator[](uint32_t);
     operator T1() const;
+
+    vector<uint32_t> get_dimensions() const
+    {
+        return this->dimensions;
+    }
 
     friend class NDArrayNode;
 
@@ -604,47 +610,47 @@ uint32_t NDArrayNode::computeFlatIndex() const
 
 // ------------------------------------------------------------------------------
 
-int main()
-{
-    try
-    {
-        NDArray left_array({2, 4, 3});
-        NDArray right_array({2, 3, 5});
+// int main()
+// {
+//     try
+//     {
+//         NDArray left_array({2, 4, 3});
+//         NDArray right_array({2, 3, 5});
 
-        double value = 1.0;
-        for (int i = 0; i < 2; i++)
-        {
-            value = 1.0;
-            for (int j = 0; j < 4; j++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    left_array.set(i, j, k, value++);
-                }
-            }
-        }
+//         double value = 1.0;
+//         for (int i = 0; i < 2; i++)
+//         {
+//             value = 1.0;
+//             for (int j = 0; j < 4; j++)
+//             {
+//                 for (int k = 0; k < 3; k++)
+//                 {
+//                     left_array.set(i, j, k, value++);
+//                 }
+//             }
+//         }
 
-        for (int i = 0; i < 2; i++)
-        {
-            value = 10.0;
-            for (int j = 0; j < 3; j++)
-            {
-                for (int k = 0; k < 5; k++)
-                {
-                    right_array.set(i, j, k, value++);
-                }
-            }
-        }
+//         for (int i = 0; i < 2; i++)
+//         {
+//             value = 10.0;
+//             for (int j = 0; j < 3; j++)
+//             {
+//                 for (int k = 0; k < 5; k++)
+//                 {
+//                     right_array.set(i, j, k, value++);
+//                 }
+//             }
+//         }
 
-        NDArray product_array({2, 4, 5});
-        product_array = left_array * right_array;
+//         NDArray product_array({2, 4, 5});
+//         product_array = left_array * right_array;
 
-        product_array.print();
-    }
-    catch (const NDArrayException &e)
-    {
-        std::cerr << "NDArrayException: " << e.what() << std::endl;
-    }
+//         product_array.print();
+//     }
+//     catch (const NDArrayException &e)
+//     {
+//         std::cerr << "NDArrayException: " << e.what() << std::endl;
+//     }
 
-    return 0;
-}
+//     return 0;
+// }
