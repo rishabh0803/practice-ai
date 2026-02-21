@@ -213,27 +213,215 @@ public:
         return *this;
     }
 
+    /*
+     * Matrix Multiplication Function
+     * Handles various dimension combinations for matrix/vector operations
+     *
+     * CONDITION 1: Both arrays have >= 2 dimensions (Lines 233-260)
+     * ============================================================
+     * Left:  [batch_dims..., M, K]    e.g., [2, 4, 3]
+     * Right: [batch_dims..., K, N]    e.g., [2, 3, 5]
+     * Result: [batch_dims..., M, N]   e.g., [2, 4, 5]
+     *
+     * Visual for one batch:
+     * Left (4×3)      Right (3×5)     Result (4×5)
+     * ┌─────────┐    ┌──────────────┐   ┌──────────────┐
+     * │ × × ×   │    │ × × × × ×    │   │ ● ● ● ● ●    │
+     * │ × × ×   │  × │ × × × × ×    │ = │ ● ● ● ● ●    │
+     * │ × × ×   │    │ × × × × ×    │   │ ● ● ● ● ●    │
+     * │ × × ×   │    └──────────────┘   │ ● ● ● ● ●    │
+     * └─────────┘                        └──────────────┘
+     *   rows=4         rows=3              rows=4
+     *   cols=3         cols=5              cols=5
+     *
+     * CONDITION 2: Both arrays are 1D (Lines 261-302)
+     * ================================================
+     *
+     * Sub-condition 2a: Output is 1D with size 1 (Lines 263-272) - Dot Product
+     * -------------------------------------------------------------------------
+     * Left:  [n]       e.g., [5]
+     * Right: [n]       e.g., [5]
+     * Result: [1]
+     *
+     * Treated as:
+     * Left (1×5)  ·  Right (5×1)  =  Scalar
+     * [a b c d e]    [a]              [sum]
+     *                [b]
+     *                [c]
+     *                [d]
+     *                [e]
+     *
+     * Sub-condition 2b: Output is >= 2D (Lines 273-282) - Outer Product
+     * ------------------------------------------------------------------
+     * Left:  [m]       e.g., [3]
+     * Right: [n]       e.g., [4]
+     * Result: [m, n]   e.g., [3, 4]
+     *
+     * Treated as:
+     * Left (3×1)  ×  Right (1×4)  =  Result (3×4)
+     * [a]            [x y z w]       [ax ay az aw]
+     * [b]        ×                =  [bx by bz bw]
+     * [c]                            [cx cy cz cw]
+     *
+     * Sub-condition 2c: Left size is 1 (Lines 283-291) - Scalar Multiplication
+     * -------------------------------------------------------------------------
+     * Left:  [1]       e.g., [5.0]
+     * Right: [n]       e.g., [3]
+     * Result: [n] or [1,n]
+     *
+     * Treated as:
+     * Left (1×1)  ×  Right (1×n)  =  Result (1×n)
+     * [a]         ×  [x y z]      =  [ax ay az]
+     *
+     * NOTE: Line 288 has syntax error - missing '=' in assignment
+     *
+     * Sub-condition 2d: Right size is 1 (Lines 292-301) - Scalar Multiplication
+     * --------------------------------------------------------------------------
+     * Left:  [m]       e.g., [3]
+     * Right: [1]       e.g., [2.0]
+     * Result: [m] or [m,1]
+     *
+     * Treated as:
+     * Left (m×1)  ×  Right (1×1)  =  Result (m×1)
+     * [a]            [x]             [ax]
+     * [b]         ×           =      [bx]
+     * [c]                            [cx]
+     *
+     * CONDITION 3: Left is 1D, Right is >=2D (Lines 303-313)
+     * =======================================================
+     * Left:  [k]              e.g., [3]
+     * Right: [..., k, n]      e.g., [2, 3, 5]
+     * Result: [..., 1, n]     e.g., [2, 1, 5]
+     *
+     * Treated as:
+     * Left (1×3)  ×  Right (3×5)  =  Result (1×5)
+     * [a b c]        [x x x x x]     [● ● ● ● ●]
+     *             ×  [x x x x x]  =
+     *                [x x x x x]
+     *
+     * CONDITION 4: Left is >=2D, Right is 1D (Lines 314-324)
+     * =======================================================
+     * Left:  [..., m, k]      e.g., [2, 4, 3]
+     * Right: [k]              e.g., [3]
+     * Result: [..., m, 1]     e.g., [2, 4, 1]
+     *
+     * Treated as:
+     * Left (4×3)    ×  Right (3×1)  =  Result (4×1)
+     * [× × ×]          [a]              [●]
+     * [× × ×]       ×  [b]           =  [●]
+     * [× × ×]          [c]              [●]
+     * [× × ×]                           [●]
+     *
+     */
     void multiply(InfixExpression expr)
     {
         auto *left = expr.left;
         auto left_array = left->data.data();
-        auto i = left->dimensions.size();
-        auto left_matrix_rows = left->dimensions[i - 2];
-        auto left_matrix_cols = left->dimensions[i - 1];
-        auto left_matrix_len = left_matrix_rows * left_matrix_cols;
+        uint32_t left_matrix_rows;
+        uint32_t left_matrix_cols;
+        uint32_t left_matrix_len;
+        int number_of_left_matrices = 1;
 
         auto *right = expr.right;
         auto right_array = right->data.data();
-        i = right->dimensions.size();
-        auto right_matrix_rows = right->dimensions[i - 2];
-        auto right_matrix_cols = right->dimensions[i - 1];
-        auto right_matrix_len = right_matrix_rows * right_matrix_cols;
+        uint32_t right_matrix_rows;
+        uint32_t right_matrix_cols;
+        uint32_t right_matrix_len;
+        int number_of_right_matrices = 1;
 
-        int number_of_matrices = 1;
-        if (i > 2)
+        uint32_t i;
+        if (left->dimensions.size() >= 2 && right->dimensions.size() >= 2)
         {
-            for (int j = 0; j < i - 2; j++)
-                number_of_matrices *= left->dimensions[j];
+            i = left->dimensions.size();
+            left_matrix_rows = left->dimensions[i - 2];
+            left_matrix_cols = left->dimensions[i - 1];
+            left_matrix_len = left_matrix_rows * left_matrix_cols;
+            if (i == 2)
+                number_of_left_matrices = 1;
+            else
+            {
+                number_of_left_matrices = 1;
+                for (int j = 0; j < i - 2; j++)
+                    number_of_left_matrices *= left->dimensions[j];
+            }
+
+            i = right->dimensions.size();
+            right_matrix_rows = right->dimensions[i - 2];
+            right_matrix_cols = right->dimensions[i - 1];
+            right_matrix_len = right_matrix_rows * right_matrix_cols;
+            if (i == 2)
+                number_of_right_matrices = 1;
+            else
+            {
+                number_of_right_matrices = 1;
+                for (int j = 0; j < i - 2; j++)
+                    number_of_right_matrices *= right->dimensions[j];
+            }
+        }
+        else if (left->dimensions.size() == 1 && right->dimensions.size() == 1)
+        {
+            if (this->dimensions.size() == 1 && this->dimensions[0] == 1)
+            {
+                left_matrix_rows = 1;
+                left_matrix_cols = left->dimensions[0];
+                left_matrix_len = left_matrix_rows * left_matrix_cols;
+
+                right_matrix_rows = right->dimensions[0];
+                right_matrix_cols = 1;
+                right_matrix_len = right_matrix_rows * right_matrix_cols;
+            }
+            else if (this->dimensions.size() >= 2)
+            {
+                left_matrix_rows = left->dimensions[0];
+                left_matrix_cols = 1;
+                left_matrix_len = left_matrix_rows * left_matrix_cols;
+
+                right_matrix_rows = 1;
+                right_matrix_cols = right->dimensions[0];
+                right_matrix_len = right_matrix_rows * right_matrix_cols;
+            }
+            else if (left->dimensions[0] == 1)
+            {
+                left_matrix_rows = 1;
+                left_matrix_cols = 1;
+                left_matrix_len = 1;
+
+                right_matrix_rows = 1;
+                right_matrix_cols = right->dimensions[0];
+                right_matrix_len = right_matrix_rows * right_matrix_cols;
+            }
+            else if (right->dimensions[0] == 1)
+            {
+                left_matrix_rows = left->dimensions[0];
+                left_matrix_cols = 1;
+                left_matrix_len = left_matrix_rows * left_matrix_cols;
+
+                right_matrix_rows = 1;
+                right_matrix_cols = 1;
+                right_matrix_len = 1;
+            }
+        }
+        else if (left->dimensions.size() == 1 && right->dimensions.size() >= 2)
+        {
+            left_matrix_rows = 1;
+            left_matrix_cols = left->dimensions[0];
+            left_matrix_len = left_matrix_rows * left_matrix_cols;
+
+            i = right->dimensions.size();
+            right_matrix_rows = right->dimensions[i - 2];
+            right_matrix_cols = right->dimensions[i - 1];
+            right_matrix_len = right_matrix_rows * right_matrix_cols;
+        }
+        else if (left->dimensions.size() >= 2 && right->dimensions.size() == 1)
+        {
+            i = left->dimensions.size();
+            left_matrix_rows = left->dimensions[i - 2];
+            left_matrix_cols = left->dimensions[i - 1];
+            left_matrix_len = left_matrix_rows * left_matrix_cols;
+
+            right_matrix_rows = right->dimensions[0];
+            right_matrix_cols = 1;
+            right_matrix_len = right_matrix_rows * right_matrix_cols;
         }
 
         // prefill the product array with 0.0
@@ -248,7 +436,7 @@ public:
         auto right_matrix = right_array;
 
         int r, c, c1;
-        for (int m = 0; m < number_of_matrices; m++)
+        for (int m = 0; m < number_of_left_matrices; m++)
         {
 #pragma omp parallel for private(c, c1)
             for (r = 0; r < left_matrix_rows; r++)
