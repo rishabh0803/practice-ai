@@ -13,6 +13,8 @@
 #include <NDArrayException.h>
 #include <NDArrayNode.h>
 #include <NDArrayTransposedView.h>
+#include <NDArrayView.h>
+
 using namespace std;
 
 NDArray::NDArray(const std::vector<uint32_t> &_dimensions)
@@ -599,6 +601,13 @@ uint32_t NDArray::getIndex(vector<uint32_t> indexes) const
 NDArrayTransposedView NDArray::get_transposed_view(bool is_read_only)
 {
 	return NDArrayTransposedView(this, is_read_only);
+}
+
+NDArrayView NDArray::get_view(vector<uint32_t> from, vector<uint32_t> to, bool is_read_only)
+{
+	// validation goes here
+	NDArrayView ndArrayView(this, from, to, is_read_only);
+	return ndArrayView;
 }
 
 void NDArray::multiply(InfixExpression<NDArrayTransposedView, NDArray> &expression)

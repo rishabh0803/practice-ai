@@ -17,6 +17,7 @@ using namespace std;
 #define T1 double
 class NDArrayNode;			 // important (forward declaration)
 class NDArrayTransposedView; // important (forward declaration)
+class NDArrayView;			 // important (forward declaration)
 class NDArray
 {
 private:
@@ -84,6 +85,7 @@ public:
 	void to_binary(const string &file_name);
 
 	NDArrayTransposedView get_transposed_view(bool is_read_only);
+	NDArrayView get_view(vector<uint32_t> from, vector<uint32_t> to, bool is_read_only);
 
 	friend class NDArrayNode;
 	friend class NDArrayTransposedView;
