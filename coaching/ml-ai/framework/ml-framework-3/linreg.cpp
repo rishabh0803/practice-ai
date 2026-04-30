@@ -22,12 +22,7 @@ int main()
 
 	ml_utils::get_x_y(csv, x, y);
 
-	// x.transpose();   Transpose the contents of x
-	// NDArray x_transposed=x.as_transposed(); // transpose and return new NDArray
-	// with transposed form of x
-
 	NDArrayTransposedView x_transposed = x.get_transposed_view(true); // true for is_read_only
-	// the above line may be      rr=x.get_transposed_view();
 
 	double learning_rate = 0.0001;
 	NDArray model({x_columns});
