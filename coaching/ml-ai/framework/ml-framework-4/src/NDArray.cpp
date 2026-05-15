@@ -40,6 +40,7 @@ NDArray::NDArray(const NDArray &other) // copy constructor
 	this->collection = other.collection;
 	this->dimensions = other.dimensions;
 }
+
 NDArray::NDArray(NDArray &&other) // move constructor
 {
 	this->collection = std::move(other.collection);
@@ -73,6 +74,7 @@ NDArray &NDArray::operator=(const NDArray &other) // copy assignment operator
 	this->dimensions = other.dimensions;
 	return *this;
 }
+
 NDArray &NDArray::operator=(NDArray &&other) // move assignment operator
 {
 	for (NDArrayNode *n : this->ndArrayNodes)
@@ -96,6 +98,7 @@ void NDArray::_set(uint32_t index, T1 value)
 {
 	this->collection[index] = value;
 }
+
 T1 NDArray::_get(uint32_t index)
 {
 	return this->collection[index];
