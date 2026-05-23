@@ -3,6 +3,7 @@
 #include <NDArrayView.h>
 #include <csv_info.h>
 #include <ml_utils.h>
+#include <ml_functions.h>
 #include <unistd.h>
 
 using namespace std;
@@ -40,11 +41,11 @@ int main()
     for (idx = 0; idx < deltas.size() - 1; ++idx)
     {
         models[idx] = new NDArray({layer_wise_neurons_count[idx + 1] - 1, layer_wise_neurons_count[idx]});
-        // NDArray::fill_random(*model[idx], {0, 0}, {layer_wise_neurons_count[idx + 1] - 2, layer_wise_neurons_count[idx] - 1}, 0, 1);
+        NDArray::fill_random(*models[idx], {0, 0}, {layer_wise_neurons_count[idx + 1] - 2, layer_wise_neurons_count[idx] - 1}, 0, 1);
     }
 
     models[idx] = new NDArray({layer_wise_neurons_count[idx + 1], layer_wise_neurons_count[idx]});
-    // NDArray::fill_random(*model[idx], {0, 0}, {layer_wise_neurons_count[idx + 1] - 1, layer_wise_neurons_count[idx] - 1}, 0, 1);
+    NDArray::fill_random(*models[idx], {0, 0}, {layer_wise_neurons_count[idx + 1] - 1, layer_wise_neurons_count[idx] - 1}, 0, 1);
 
     // Create view for each layer, for output layer we will not be using bias term
     // so we will not be creating view for bias term
@@ -55,40 +56,38 @@ int main()
     layers_view[idx] = new NDArrayView(layers[idx + 1], {0}, {layer_wise_neurons_count[idx + 1] - 1}, true);
 
     // For debugging lets print the dimensions of all the layers, deltas and model
-    for (idx = 0; idx < layers.size(); ++idx)
-    {
-        auto dimensions = layers[idx]->get_dimensions();
-        cout << "Layer " << idx << " dimensions: { ";
-        for (auto &d : dimensions)
-            cout << d << " ";
-        cout << "}" << endl;
-    }
+    // cout << "====== Dimensions of layers ======" << endl;
+    // print_dimensions(layers);
+    // cout << "====== Dimensions of deltas ======" << endl;
+    // print_dimensions(deltas);
+    // cout << "====== Dimensions of models ======" << endl;
+    // print_dimensions(models);
+    // cout << "====== Dimensions of layers view ======" << endl;
+    // print_dimensions(layers_view);
 
-    for (idx = 0; idx < deltas.size(); ++idx)
-    {
-        auto dimensions = deltas[idx]->get_dimensions();
-        cout << "Delta " << idx << " dimensions: { ";
-        for (auto &d : dimensions)
-            cout << d << " ";
-        cout << "}" << endl;
-    }
+    uint32_t x_row_index;
+    auto x_rows = csv.rows();
+    auto x_columns = csv.columns();
+    uint64_t ii, jj;
+    jj = layers.size() - 1;
 
-    for (idx = 0; idx < models.size(); ++idx)
+    for (x_row_index = 0; x_row_index < x_rows; ++x_row_index)
     {
-        auto dimensions = models[idx]->get_dimensions();
-        cout << "Model " << idx << " dimensions: { ";
-        for (auto &d : dimensions)
-            cout << d << " ";
-        cout << "}" << endl;
-    }
+        // copy input to first layer
+        NDArray::copy(*layers[0], {0}, x, {x_row_index, 0}, {x_row_index, x_columns - 1});
 
-    for (idx = 0; idx < layers_view.size(); ++idx)
-    {
-        auto dimensions = layers_view[idx]->get_dimensions();
-        cout << "Layer view " << idx << " dimensions: { ";
-        for (auto &d : dimensions)
-            cout << d << " ";
-        cout << "}" << endl;
+        for (ii = 0; ii < jj; ++ii)
+        {
+            *(deltas[ii]) = (*models[ii]) * (*layers[ii]);
+            *(layers_view[ii]) = sigmoid(*(deltas[ii]));
+        }
+        cout << "Processed row " << x_row_index + 1 << " out of " << x_rows << endl;
+        // print layers data for debugging
+        for (idx = 0; idx < layers.size(); ++idx)
+        {
+            cout << "Layer " << idx << " data: ";
+            layers[idx]->print();
+        }
     }
 
     // release all
@@ -102,4 +101,28 @@ int main()
         delete t;
 
     return 0;
+}
+
+void print_dimensions(const vector<NDArray *> &arrays)
+{
+    for (size_t idx = 0; idx < arrays.size(); ++idx)
+    {
+        auto dimensions = arrays[idx]->get_dimensions();
+        cout << "Layer " << idx << " dimensions: { ";
+        for (auto &d : dimensions)
+            cout << d << " ";
+        cout << "}" << endl;
+    }
+}
+
+void print_dimensions(const vector<NDArrayView *> &arrays)
+{
+    for (size_t idx = 0; idx < arrays.size(); ++idx)
+    {
+        auto dimensions = arrays[idx]->get_dimensions();
+        cout << "Layer view " << idx << " dimensions: { ";
+        for (auto &d : dimensions)
+            cout << d << " ";
+        cout << "}" << endl;
+    }
 }
