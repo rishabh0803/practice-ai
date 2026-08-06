@@ -173,10 +173,10 @@ int main()
         // something to compute cost
         // 1/m summation summation (-y)*log(y_hat) - (1-y)*log(1-y_hat) + reg/2m summ summ summ theta^2
         minus_y = -y;
-        log_y_hat = log_with_epsilon(y_hat);
+        log_y_hat = log_with_eps(y_hat);
         one_minus_y = 1.0 - y;
         one_minus_y_hat = 1.0 - y_hat;
-        log_one_minus_y_hat = log_with_epsilon(one_minus_y_hat);
+        log_one_minus_y_hat = log_with_eps(one_minus_y_hat);
         left_product = pointwise_product(minus_y, log_y_hat);
         right_product = pointwise_product(one_minus_y, log_one_minus_y_hat);
         difference = left_product - right_product;

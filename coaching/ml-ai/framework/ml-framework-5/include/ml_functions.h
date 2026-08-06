@@ -9,7 +9,7 @@ using namespace std;
 
 double sigmoid(double x);
 double der_sigmoid(double x);
-double log_with_epsilon(double v);
+double log_with_eps(double v);
 
 template <typename T,
 		  typename = enable_if_t<disjunction_v<is_same<T, NDArray>, is_same<T, NDArrayTransposedView>, is_same<T, NDArrayView>>>>
@@ -20,9 +20,9 @@ OneParamFunc<T> log(T &obj)
 
 template <typename T,
 		  typename = enable_if_t<disjunction_v<is_same<T, NDArray>, is_same<T, NDArrayTransposedView>, is_same<T, NDArrayView>>>>
-OneParamFunc<T> log_with_epsilon(T &obj)
+OneParamFunc<T> log_with_eps(T &obj)
 {
-	return OneParamFunc<T>(obj, log_with_epsilon);
+	return OneParamFunc<T>(obj, log_with_eps);
 }
 
 template <typename T,

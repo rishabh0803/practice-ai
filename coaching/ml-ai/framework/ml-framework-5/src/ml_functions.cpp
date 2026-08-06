@@ -10,7 +10,7 @@ double der_sigmoid(double x)
 	return sigmoid(x) * (1 - sigmoid(x));
 }
 
-double log_with_epsilon(double v)
+double log_with_eps(double v)
 {
 	return log(v + 1e-15);
 }
