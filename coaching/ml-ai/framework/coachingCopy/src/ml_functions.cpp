@@ -1,0 +1,15 @@
+#include <ml_functions.h>
+double sigmoid(double x)
+{
+	return 1.0 / (1.0 + exp(-x));
+}
+
+double der_sigmoid(double x)
+{
+	return sigmoid(x) * (1 - sigmoid(x));
+}
+
+double log_with_eps(double x)
+{
+	return log(x + 1e-15);
+}
