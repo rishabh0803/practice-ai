@@ -25,7 +25,11 @@ int main()
     // Create neurons for each layer
     vector<NDArray *> layers(number_of_layers);
     for (auto cnt : layer_wise_neurons_count)
-        layers[idx++] = new NDArray({cnt});
+    {
+        layers[idx] = new NDArray({cnt});
+        *(layers[idx])[0] = 1.0; // ideally not required for first and last layer, but wouldn't matter
+        idx++;
+    }
 
     // Create deltas for each layer, for output layer we will not be using bias term,
     // so we will not be creating delta for bias term
@@ -71,6 +75,7 @@ int main()
     uint64_t ii, jj;
     jj = layers.size() - 1;
 
+    cout << csv.name() << " has " << x_rows << " rows and " << x_columns << " columns." << endl;
     for (x_row_index = 0; x_row_index < x_rows; ++x_row_index)
     {
         // copy input to first layer
