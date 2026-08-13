@@ -14,12 +14,13 @@ class ExpressionNode
 {
 public:
     Element element;
+    Number *accumulator;
+
     ExpressionNode *rootNode;
-    ExpressionNode *rightNode;
 
     const ExpressionNode *left;
     const ExpressionNode *right;
-    const ExpressionNode *parent;
+    ExpressionNode *parent;
 
     ExpressionNode();
     ~ExpressionNode();
@@ -50,6 +51,7 @@ public:
     ExpressionNode &operator*(ExpressionNode &right_operand);
 
     Number &operator=(ExpressionNode &node);
+    int operator()() const;
 
     void traversePostOrder(const ExpressionNode *node);
 
@@ -64,13 +66,14 @@ ExpressionNode::ExpressionNode()
     this->parent = nullptr;
 
     this->rootNode = nullptr;
-    this->rightNode = nullptr;
+
+    this->accumulator = nullptr;
 }
 
 ExpressionNode::~ExpressionNode()
 {
     delete this->rootNode;
-    delete this->rightNode;
+    delete this->accumulator;
 }
 
 ExpressionNode &ExpressionNode::operator+(Number &right_operand)
@@ -267,8 +270,82 @@ ExpressionNode &Number::operator*(ExpressionNode &right_operand)
 Number &Number::operator=(ExpressionNode &node)
 {
     cout << "Number::operator=(ExpressionNode &node)" << endl;
-    traversePostOrder(&node);
+    // traversePostOrder(&node);
+    // return *this;
+
+    char oper;
+
+    ExpressionNode *parent;
+    const ExpressionNode *left_sibling;
+    const ExpressionNode *right_sibling;
+
+    int left_num;
+    int right_num;
+
+    const ExpressionNode *curr = &node;
+    while (!(node.left == nullptr && node.right == nullptr))
+    {
+        if (curr->left == nullptr && curr->right == nullptr)
+        {
+            // curr is pointing to a leaf node, so we can evaluate the parent node
+            parent = curr->parent;
+            left_sibling = parent->left;
+            right_sibling = parent->right;
+
+            if (left_sibling->left == nullptr && left_sibling->right == nullptr &&
+                right_sibling->left == nullptr && right_sibling->right == nullptr)
+            {
+                // both left_sibling and right_sibling are leaf nodes, so we can evaluate the parent node
+
+                left_num = left_sibling->element._operand->value;
+                right_num = right_sibling->element._operand->value;
+                oper = parent->element._operator;
+
+                if (parent->accumulator == nullptr)
+                    parent->accumulator = new Number();
+
+                if (oper == '+')
+                    parent->accumulator->value = left_num + right_num;
+                else if (oper == '*')
+                    parent->accumulator->value = left_num * right_num;
+                else if (oper == '-')
+                    parent->accumulator->value = left_num - right_num;
+                else if (oper == '/')
+                    parent->accumulator->value = left_num / right_num;
+                else
+                    parent->accumulator->value = 0;
+
+                parent->element._operand = parent->accumulator;
+                parent->left = nullptr;
+                parent->right = nullptr;
+
+                curr = parent;
+            }
+            else
+            {
+                // curr is pointing to a leaf node,
+                // but either left_sibling or right_sibling is not a leaf node,
+                // move to node that is not a leaf node to resolve it first
+                curr = (parent->left == curr) ? right_sibling : left_sibling;
+            }
+        }
+        else
+        {
+            // curr is not pointing to a leaf node, so we need to traverse down the tree
+            if (curr->left == nullptr)
+                curr = curr->right;
+            else
+                curr = curr->left;
+        }
+    }
+
+    this->value = node.element._operand->value;
     return *this;
+}
+
+int Number::operator()() const
+{
+    return this->value;
 }
 
 void Number::traversePostOrder(const ExpressionNode *node)
@@ -288,23 +365,37 @@ void Number::traversePostOrder(const ExpressionNode *node)
 // ----------------------------- main -----------------------------
 int main()
 {
-    Number a(1), b(2), c;
-    c = a + b;
+    Number a(1), b(2), c(3), d(4), e(5), f(6), g(7), h(8), i;
 
-    Number d(1), e(2), f(3), g;
-    g = d + (e + f);
+    cout << "Expression: a + b" << endl;
+    i = a + b;
+    cout << "Result: " << i() << endl;
+    cout << "Expected: " << (1 + 2) << endl;
 
-    Number h(1), i(2), j(3), k;
-    k = h + i * j;
+    cout << "Expression: d + (e + f)" << endl;
+    i = d + (e + f);
+    cout << "Result: " << i() << endl;
+    cout << "Expected: " << (4 + (5 + 6)) << endl;
 
-    Number l(1), m(2), n(3), o;
-    o = (l + m) * n;
+    cout << "Expression: a + b * c" << endl;
+    i = a + b * c;
+    cout << "Result: " << i() << endl;
+    cout << "Expected: " << (1 + 2 * 3) << endl;
 
-    Number p(1), q(2), r(3), s(4), t;
-    t = (p + q) * (r + s);
+    cout << "Expression: (a + b) * c" << endl;
+    i = (a + b) * c;
+    cout << "Result: " << i() << endl;
+    cout << "Expected: " << ((1 + 2) * 3) << endl;
 
-    Number a1(1), b1(2), c1(3), d1(4), e1(5), f1(6), g1(7), h1(8), i1;
-    i1 = a1 + b1 * (c1 + d1) * (e1 + f1) * g1 + h1;
+    cout << "Expression: (a + b) * (c + d)" << endl;
+    i = (a + b) * (c + d);
+    cout << "Result: " << i() << endl;
+    cout << "Expected: " << ((1 + 2) * (3 + 4)) << endl;
+
+    cout << "Expression: a + b * (c + d) * (e + f) * g + h" << endl;
+    i = a + b * (c + d) * (e + f) * g + h;
+    cout << "Result: " << i() << endl;
+    cout << "Expected: " << (1 + 2 * (3 + 4) * (5 + 6) * 7 + 8) << endl;
 
     return 0;
 }
