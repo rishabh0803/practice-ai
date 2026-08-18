@@ -1,3 +1,13 @@
+/**
+ * This file contains the implementation of a simple expression tree using C++ classes.
+ * It defines the `Number` and `Expression` classes, which allow for the creation and
+ * evaluation of mathematical expressions involving numbers and operations such as
+ * addition and multiplication.
+ *
+ * The code demonstrates operator overloading to facilitate the construction of
+ * expressions in a natural way.
+ */
+
 #include <iostream>
 #include <cstdint>
 
