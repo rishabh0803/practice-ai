@@ -66,6 +66,16 @@ NDArray::~NDArray() // destructor
 	}
 }
 
+T1 *NDArray::data()
+{
+	return this->collection.data();
+}
+
+uint32_t NDArray::data_size()
+{
+	return this->collection.size();
+}
+
 NDArray &NDArray::operator=(const NDArray &other) // copy assignment operator
 {
 	for (NDArrayNode *n : this->ndArrayNodes)
