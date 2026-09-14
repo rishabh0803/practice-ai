@@ -49,6 +49,9 @@ public:
 	NDArrayNode operator[](uint32_t);
 	vector<uint32_t> get_dimensions();
 
+	T1 *data();
+	uint32_t data_size();
+
 	template <typename T>
 	NDArray &operator=(const OneParamFunc<T> &one_param_func);
 
@@ -107,6 +110,7 @@ public:
 	friend class NDArrayNode;
 	friend class NDArrayTransposedView;
 	friend class NDArrayView;
+	friend class NDArrayStore;
 };
 
 template <typename T>
