@@ -14,6 +14,7 @@
 #include <NDArrayNode.h>
 #include <NDArrayTransposedView.h>
 #include <NDArrayView.h>
+#include <ndarray_store.h>
 
 using namespace std;
 
@@ -131,11 +132,11 @@ NDArrayNode NDArray::operator[](uint32_t index)
 }
 
 // implementation of NDArray methods start here
-InfixExpression<NDArray *, NDArray *> NDArray::operator*(NDArray &right)
-{
+// InfixExpression<NDArray *, NDArray *> NDArray::operator*(NDArray &right)
+// {
 
-	return InfixExpression<NDArray *, NDArray *>(this, '*', &right);
-}
+// 	return InfixExpression<NDArray *, NDArray *>(this, '*', &right);
+// }
 
 InfixExpression<NDArray *, NDArrayTransposedView *> NDArray::operator*(NDArrayTransposedView &right)
 {
@@ -151,14 +152,14 @@ InfixExpression<NDArray *, NDArray *> NDArray::operator/(NDArray &right)
 	return InfixExpression<NDArray *, NDArray *>(this, '/', &right);
 }
 
-InfixExpression<NDArray *, NDArray *> NDArray::operator+(NDArray &right)
-{
-	if (this->collection.size() != right.collection.size())
-	{
-		throw new NDArrayException("NDArray::operator+(NDArray &right) size mismatch");
-	}
-	return InfixExpression<NDArray *, NDArray *>(this, '+', &right);
-}
+// InfixExpression<NDArray *, NDArray *> NDArray::operator+(NDArray &right)
+// {
+// 	if (this->collection.size() != right.collection.size())
+// 	{
+// 		throw new NDArrayException("NDArray::operator+(NDArray &right) size mismatch");
+// 	}
+// 	return InfixExpression<NDArray *, NDArray *>(this, '+', &right);
+// }
 
 InfixExpression<NDArray *, double> NDArray::operator^(double value)
 {
@@ -442,9 +443,10 @@ void NDArray::multiply(InfixExpression<double, NDArray *> &expression)
 
 void NDArray::multiply(InfixExpression<NDArray *, NDArray *> &expression)
 {
-	auto left = expression.left;
+}
+void NDArray::multiply(NDArray *left, NDArray *right)
+{
 	auto left_array = left->collection.data();
-	auto right = expression.right;
 	auto right_array = right->collection.data();
 	uint32_t i;
 	uint32_t left_matrix_rows;
@@ -1130,6 +1132,44 @@ void NDArray::multiply(InfixExpression<NDArrayTransposedView *, NDArray *> &expr
 
 } // multiply ends
 
+expression &NDArray::operator+(NDArray &right)
+{
+	expression *t = expression::get_expression();
+	t->left.ndArray = this;
+	t->right.ndArray = &right;
+	t->oper = '+';
+	t->flags = LEFT_IS_NDARRAY | RIGHT_IS_NDARRAY;
+	return *t;
+}
+expression &NDArray::operator+(expression &right)
+{
+	expression *t = expression::get_expression();
+	t->left.ndArray = this;
+	t->right.expr = &right;
+	t->oper = '+';
+	t->flags = LEFT_IS_NDARRAY | RIGHT_IS_EXPRESSION;
+	return *t;
+}
+
+expression &NDArray::operator*(NDArray &right)
+{
+	expression *t = expression::get_expression();
+	t->left.ndArray = this;
+	t->right.ndArray = &right;
+	t->oper = '*';
+	t->flags = LEFT_IS_NDARRAY | RIGHT_IS_NDARRAY;
+	return *t;
+}
+expression &NDArray::operator*(expression &right)
+{
+	expression *t = expression::get_expression();
+	t->left.ndArray = this;
+	t->right.expr = &right;
+	t->oper = '*';
+	t->flags = LEFT_IS_NDARRAY | RIGHT_IS_EXPRESSION;
+	return *t;
+}
+
 NDArray NDArray::operator/(double value)
 {
 	NDArray tmp = *this;
@@ -1186,4 +1226,229 @@ double NDArray::sum()
 	for (auto x : this->collection)
 		s += x;
 	return s;
+}
+
+NDArray &NDArray::operator=(expression &expr)
+{
+	uint32_t dim_value;
+	expression *t;
+	NDArray *left_ndArray, *right_ndArray;
+	NDArray *result_ndArray;
+	expression *left_expression, *right_expression;
+	uint32_t k;
+	uint32_t i, sz;
+	uint32_t left_dim_sz, right_dim_sz;
+	auto expr_sz = expression::pool.tail;
+	k = 0;
+	while (k < expr_sz)
+	{
+		t = &(expression::pool.expressions[k]);
+		++k;
+		if ((t->flags & LEFT_IS_NDARRAY) && (t->flags & RIGHT_IS_NDARRAY))
+		{
+			left_ndArray = t->left.ndArray;
+			right_ndArray = t->right.ndArray;
+			if (t->oper == '+')
+			{
+				result_ndArray = NDArrayStore::ndArrayStore.get(left_ndArray->dimensions);
+				if (result_ndArray == NULL)
+					throw string("Low memory, cannot solve expression");
+				sz = left_ndArray->collection.size();
+#pragma omp parallel for
+				for (i = 0; i < sz; ++i)
+				{
+					result_ndArray->collection[i] = left_ndArray->collection[i] + right_ndArray->collection[i];
+				}
+				t->result.ndArray = result_ndArray;
+				t->flags = RESULT_IS_NDARRAY;
+			}
+			else if (t->oper == '*')
+			{
+				// assuming that left and right are not 1D
+				// not applying any validations
+				left_dim_sz = left_ndArray->dimensions.size();
+				dim_value = left_ndArray->dimensions[left_dim_sz - 1];
+				right_dim_sz = right_ndArray->dimensions.size();
+				left_ndArray->dimensions[left_dim_sz - 1] = right_ndArray->dimensions[right_dim_sz - 1];
+				result_ndArray = NDArrayStore::ndArrayStore.get(left_ndArray->dimensions);
+				left_ndArray->dimensions[left_dim_sz - 1] = dim_value;
+				result_ndArray->multiply(left_ndArray, right_ndArray);
+				t->result.ndArray = result_ndArray;
+				t->flags = RESULT_IS_NDARRAY;
+			}
+			continue;
+		}
+
+		if ((t->flags & LEFT_IS_EXPRESSION) && (t->flags & RIGHT_IS_NDARRAY))
+		{
+			left_expression = t->left.expr;
+			right_ndArray = t->right.ndArray;
+			if (t->oper == '+')
+			{
+				if (left_expression->flags == RESULT_IS_DOUBLE)
+				{
+				}
+				else // must be NDARRAY
+				{
+					left_ndArray = left_expression->result.ndArray;
+					result_ndArray = NDArrayStore::ndArrayStore.get(left_ndArray->dimensions);
+					if (result_ndArray == NULL)
+						throw string("Low memory, cannot solve expression");
+					sz = left_ndArray->collection.size();
+#pragma omp parallel for
+					for (i = 0; i < sz; ++i)
+					{
+						result_ndArray->collection[i] = left_ndArray->collection[i] + right_ndArray->collection[i];
+					}
+					t->result.ndArray = result_ndArray;
+					t->flags = RESULT_IS_NDARRAY;
+				}
+			}
+			else if (t->oper == '*')
+			{
+				if (left_expression->flags == RESULT_IS_DOUBLE)
+				{
+				}
+				else // must be NDARRAY
+				{
+					left_ndArray = left_expression->result.ndArray;
+					left_dim_sz = left_ndArray->dimensions.size();
+					dim_value = left_ndArray->dimensions[left_dim_sz - 1];
+					right_dim_sz = right_ndArray->dimensions.size();
+					left_ndArray->dimensions[left_dim_sz - 1] = right_ndArray->dimensions[right_dim_sz - 1];
+					result_ndArray = NDArrayStore::ndArrayStore.get(left_ndArray->dimensions);
+					left_ndArray->dimensions[left_dim_sz - 1] = dim_value;
+					result_ndArray->multiply(left_ndArray, right_ndArray);
+					t->result.ndArray = result_ndArray;
+					t->flags = RESULT_IS_NDARRAY;
+				}
+			}
+			continue;
+		}
+
+		if ((t->flags & LEFT_IS_NDARRAY) && (t->flags & RIGHT_IS_EXPRESSION))
+		{
+			left_ndArray = t->left.ndArray;
+			right_expression = t->right.expr;
+			if (t->oper == '+')
+			{
+				if (right_expression->flags == RESULT_IS_DOUBLE)
+				{
+				}
+				else // must be NDARRAY
+				{
+					right_ndArray = right_expression->result.ndArray;
+					result_ndArray = NDArrayStore::ndArrayStore.get(left_ndArray->dimensions);
+					if (result_ndArray == NULL)
+						throw string("Low memory, cannot solve expression");
+					sz = left_ndArray->collection.size();
+#pragma omp parallel for
+					for (i = 0; i < sz; ++i)
+					{
+						result_ndArray->collection[i] = left_ndArray->collection[i] + right_ndArray->collection[i];
+					}
+					t->result.ndArray = result_ndArray;
+					t->flags = RESULT_IS_NDARRAY;
+				}
+			}
+			else if (t->oper == '*')
+			{
+				if (right_expression->flags == RESULT_IS_DOUBLE)
+				{
+				}
+				else // must be NDARRAY
+				{
+					right_ndArray = right_expression->result.ndArray;
+					left_dim_sz = left_ndArray->dimensions.size();
+					dim_value = left_ndArray->dimensions[left_dim_sz - 1];
+					right_dim_sz = right_ndArray->dimensions.size();
+					left_ndArray->dimensions[left_dim_sz - 1] = right_ndArray->dimensions[right_dim_sz - 1];
+					result_ndArray = NDArrayStore::ndArrayStore.get(left_ndArray->dimensions);
+					left_ndArray->dimensions[left_dim_sz - 1] = dim_value;
+					result_ndArray->multiply(left_ndArray, right_ndArray);
+					t->result.ndArray = result_ndArray;
+					t->flags = RESULT_IS_NDARRAY;
+				}
+			}
+			continue;
+		}
+		// add to left is expression and right is expression
+
+		if ((t->flags & LEFT_IS_EXPRESSION) && (t->flags & RIGHT_IS_EXPRESSION))
+		{
+			left_expression = t->left.expr;
+			right_expression = t->right.expr;
+			if (t->oper == '+')
+			{
+				if (right_expression->flags == RESULT_IS_DOUBLE) // need to think about this
+				{
+				}
+				else // must be NDARRAY
+				{
+					right_ndArray = right_expression->result.ndArray;
+					left_ndArray = left_expression->result.ndArray;
+
+					result_ndArray = NDArrayStore::ndArrayStore.get(left_ndArray->dimensions);
+					if (result_ndArray == NULL)
+						throw string("Low memory, cannot solve expression");
+					sz = left_ndArray->collection.size();
+#pragma omp parallel for
+					for (i = 0; i < sz; ++i)
+					{
+						result_ndArray->collection[i] = left_ndArray->collection[i] + right_ndArray->collection[i];
+					}
+					t->result.ndArray = result_ndArray;
+					t->flags = RESULT_IS_NDARRAY;
+				}
+			}
+			else if (t->oper == '*')
+			{
+				if (right_expression->flags == RESULT_IS_DOUBLE) // need to think about this
+				{
+				}
+				else // must be NDARRAY
+				{
+					right_ndArray = right_expression->result.ndArray;
+					left_ndArray = left_expression->result.ndArray;
+					left_dim_sz = left_ndArray->dimensions.size();
+					dim_value = left_ndArray->dimensions[left_dim_sz - 1];
+					right_dim_sz = right_ndArray->dimensions.size();
+					left_ndArray->dimensions[left_dim_sz - 1] = right_ndArray->dimensions[right_dim_sz - 1];
+					result_ndArray = NDArrayStore::ndArrayStore.get(left_ndArray->dimensions);
+					left_ndArray->dimensions[left_dim_sz - 1] = dim_value;
+					result_ndArray->multiply(left_ndArray, right_ndArray);
+					t->result.ndArray = result_ndArray;
+					t->flags = RESULT_IS_NDARRAY;
+				}
+			}
+			continue;
+		}
+		if ((t->flags & LEFT_IS_FUNCTION) && (t->flags & RIGHT_IS_NDARRAY))
+		{
+			if (t->oper == '1')
+			{
+				// the function involved is supposed to return double type value
+				// then   double (*ptr)(NDArray &);
+				// ptr=(double (*ptr)(NDArray &))t->func;
+				// double answer=ptr(*(t->right.ndArray));
+				// t->result.value=answer;
+				//		else
+				// ptr will be of diff kind
+				// t->result.ndArray=answer;
+			}
+		}
+
+	} // loop in expressions ends here
+	*this = *result_ndArray;
+	for (k = 0; k < expr_sz; ++k)
+	{
+		t = &(expression::pool.expressions[k]);
+		if (t->flags & RESULT_IS_NDARRAY)
+		{
+			NDArrayStore::ndArrayStore.put(t->result.ndArray);
+			t->result.ndArray = NULL;
+		}
+	}
+	expression::reset();
+	return *this;
 }

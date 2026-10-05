@@ -1,6 +1,8 @@
 #include <ndarray_store.h>
 
-NDArray *NDArrayStore::get(vector<uint32_t> &v)
+thread_local NDArrayStore NDArrayStore::ndArrayStore;
+
+NDArray *NDArrayStore::get(const vector<uint32_t> &v)
 {
     auto iter = ndArrayPool.find(v);
     NDArray *ndArray;

@@ -12,7 +12,9 @@ private:
     unordered_map<vector<uint32_t>, NDArrayStack *, DimensionHash> ndArrayPool;
 
 public:
-    NDArray *get(vector<uint32_t> &v);
+    static thread_local NDArrayStore ndArrayStore;
+
+    NDArray *get(const vector<uint32_t> &v);
     void put(NDArray *ndArray);
     ~NDArrayStore();
 };
