@@ -1,9 +1,6 @@
 #pragma once
 #include <cstdint>
 #include <iostream>
-#include <NDArray.h>
-#include <NDArrayView.h>
-#include <NDArrayTransposedView.h>
 using namespace std;
 
 typedef enum _expression_enums
@@ -25,7 +22,11 @@ typedef enum _expression_enums
 
 } expression_enum;
 
+class NDArray;
+class NDArrayTransposedView;
+class NDArrayView;
 class expression;
+
 typedef union _operand
 {
     NDArray *ndArray;
@@ -42,6 +43,16 @@ typedef union _expression_result
     NDArray *ndArray;
 } expression_result;
 
+class expression_pool
+{
+public:
+    expression *expressions;
+    uint32_t tail;
+    uint32_t sz;
+    expression_pool();
+    ~expression_pool();
+};
+
 class expression
 {
 public:
@@ -50,14 +61,14 @@ public:
     char oper;
     uint64_t flags;
     expression_result result;
-    expression *next;
-    static expression *expressions;
-    static uint32_t tail;
-    static uint32_t sz;
-    expression();
-    static expression *get_expression();
-};
 
-expression *expression::expressions = NULL;
-uint32_t expression::tail = 0;
-uint32_t sz = 0;
+    static expression *get_expression();
+    static expression_pool pool;
+    static void reset();
+
+    expression();
+    expression &operator+(NDArray &right);
+    expression &operator+(expression &right);
+    expression &operator*(NDArray &right);
+    expression &operator*(expression &right);
+};

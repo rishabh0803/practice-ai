@@ -4,12 +4,19 @@
 #include <NDArrayView.h>
 #include <NDArrayTransposedView.h>
 
-double sigmoid(double value);
+class ml_math
+{
+private:
+    ml_math();
 
+public:
+    static double sigmoid(double value);
+    static NDArray *sigmoid(NDArray *array);
+    static NDArray *sigmoid(NDArrayView *array);
+    static NDArray *sigmoid(NDArrayTransposedView *array);
+};
+
+expression &_sigmoid(double value);
 expression &sigmoid(NDArray &);
 expression &sigmoid(NDArrayTransposedView &);
 expression &sigmoid(NDArrayView &);
-
-NDArray *sigmoid(NDArray *);
-NDArray *sigmoid(NDArrayView *);
-NDArray *sigmoid(NDArrayTransposedView *);

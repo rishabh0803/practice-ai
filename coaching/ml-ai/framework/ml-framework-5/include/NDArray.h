@@ -12,6 +12,7 @@
 #include <NDArrayException.h>
 #include <NDArrayNode.h>
 #include <OneParamFunc.h>
+#include <expression.h>
 
 using namespace std;
 
@@ -55,10 +56,10 @@ public:
 	template <typename T>
 	NDArray &operator=(const OneParamFunc<T> &one_param_func);
 
-	InfixExpression<NDArray *, NDArray *> operator*(NDArray &right);
+	// InfixExpression<NDArray *, NDArray *> operator*(NDArray &right);
 	InfixExpression<NDArray *, NDArrayTransposedView *> operator*(NDArrayTransposedView &right);
 	InfixExpression<NDArray *, NDArray *> operator/(NDArray &right);
-	InfixExpression<NDArray *, NDArray *> operator+(NDArray &right);
+	// InfixExpression<NDArray *, NDArray *> operator+(NDArray &right);
 	InfixExpression<NDArray *, NDArray *> operator-(NDArray &right);
 	InfixExpression<NDArray *, double> operator^(double value);
 	InfixExpression<double, NDArray *> operator-();
@@ -67,6 +68,11 @@ public:
 	NDArray operator*(double value);
 	NDArray operator+(double value);
 	NDArray operator-(double value);
+
+	expression &operator+(NDArray &right);
+	expression &operator+(expression &right);
+	expression &operator*(NDArray &right);
+	expression &operator*(expression &right);
 
 	void operator*=(double value);
 	void operator/=(double value);
@@ -84,17 +90,24 @@ public:
 	NDArray operator=(InfixExpression<NDArrayView *, NDArray *> expression);
 	NDArray operator=(InfixExpression<NDArray *, NDArrayTransposedView *> expression);
 
+	NDArray &operator=(expression &);
+
 	void divide(InfixExpression<NDArray *, NDArray *> &expression);
 	void add(InfixExpression<NDArray *, NDArray *> &expression);
+
 	void subtract(InfixExpression<NDArray *, NDArray *> &expression);
 	void subtract(InfixExpression<double, NDArray *> &expression);
+
 	void multiply(InfixExpression<NDArray *, NDArray *> &expression);
 	void multiply(InfixExpression<double, NDArray *> &expression);
-	void pow(InfixExpression<NDArray *, double> &expression);
-	void pointwise_product(InfixExpression<NDArray *, NDArray *> &expression);
-	void pointwise_product(InfixExpression<NDArrayView *, NDArray *> &expression);
 	void multiply(InfixExpression<NDArrayTransposedView *, NDArray *> &expression);
 	void multiply(InfixExpression<NDArray *, NDArrayTransposedView *> &expression);
+	void multiply(NDArray *left, NDArray *right);
+
+	void pow(InfixExpression<NDArray *, double> &expression);
+
+	void pointwise_product(InfixExpression<NDArray *, NDArray *> &expression);
+	void pointwise_product(InfixExpression<NDArrayView *, NDArray *> &expression);
 
 	void print();
 	double sum();
